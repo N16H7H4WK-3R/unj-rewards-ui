@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary accent (orange) from design */
+  --color-primary: #F24A2A;
+  --color-primary-dark: #D93E20;
+  --color-primary-light: #FF6B4A;
+
+  /* Backgrounds */
+  --color-bg: #F7F7F7;
+  --color-surface: #FFFFFF;
+
+  /* Text */
+  --color-text-primary: #0F0F0F;
+  --color-text-muted: #6B7280;
+  --color-text-light: #9CA3AF;
+
+  /* Card gradient */
+  --color-card-dark-start: #1A1A1A;
+  --color-card-dark-end: #2D2D2D;
+
+  /* Borders */
+  --color-border: #E5E7EB;
+  --color-border-focus: #F24A2A;
+
+  /* Status */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-fab: 0 4px 20px rgba(242,74,42,0.4);
+  --shadow-soft: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Base styles */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-light);
+  border-radius: 2px;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
