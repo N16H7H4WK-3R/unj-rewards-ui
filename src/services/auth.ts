@@ -82,13 +82,13 @@ export function setTokens(data: {
     refresh: string;
     user_role: string | null;
     username: string;
-    full_name: string;
+    full_name?: string;
 }) {
     memoryTokens.access = data.access;
     memoryTokens.refresh = data.refresh;
     memoryTokens.userRole = data.user_role;
     memoryTokens.username = data.username;
-    memoryTokens.fullName = data.full_name;
+    memoryTokens.fullName = data.full_name || null;
     persistToStorage();
 }
 

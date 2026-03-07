@@ -35,6 +35,13 @@ export interface LoginResponse {
     full_name: string;
 }
 
+export interface AdminLoginResponse {
+    access: string;
+    refresh: string;
+    user_role: string;
+    username: string;
+}
+
 export interface RefreshPayload {
     refresh: string;
 }

@@ -26,3 +26,24 @@ export function RedirectIfAuthenticated() {
     }
     return <Outlet />;
 }
+
+export function RequireAdmin() {
+    if (!isAuthenticated()) {
+        return <Navigate to="/admin/login" replace />;
+    }
+    const role = getUserRole();
+    if (role !== 'Super Admin' && role !== 'admin') {
+        return <Navigate to="/admin/login" replace />;
+    }
+    return <Outlet />;
+}
+
+export function RedirectIfAdminAuthenticated() {
+    if (isAuthenticated()) {
+        const role = getUserRole();
+        if (role === 'Super Admin' || role === 'admin') {
+            return <Navigate to="/admin" replace />;
+        }
+    }
+    return <Outlet />;
+}

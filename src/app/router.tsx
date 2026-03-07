@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import AppShell from '../layouts/AppShell';
-import { RequireAuth, RequireRole, RedirectIfAuthenticated } from '../routes/guards';
+import AdminLayout from '../layouts/AdminLayout';
+import { RequireAuth, RequireRole, RedirectIfAuthenticated, RequireAdmin, RedirectIfAdminAuthenticated } from '../routes/guards';
 import Loader from '../components/ui/Loader';
 import { ROUTES } from '../lib/constants';
 
@@ -14,8 +15,9 @@ const WalletPage = lazy(() => import('../pages/wallet/WalletPage'));
 const TransactionHistoryPage = lazy(() => import('../pages/wallet/TransactionHistoryPage'));
 const ScanPage = lazy(() => import('../pages/qr/ScanPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
-const AdminQrCreatePage = lazy(() => import('../pages/admin/AdminQrCreatePage'));
-const AdminQrListPage = lazy(() => import('../pages/admin/AdminQrListPage'));
+const AdminLoginPage = lazy(() => import('../pages/admin/AdminLoginPage'));
+const AdminBulkQrPage = lazy(() => import('../pages/admin/AdminBulkQrPage'));
+const AdminQrCodesPage = lazy(() => import('../pages/admin/AdminQrCodesPage'));
 const OfflinePage = lazy(() => import('../pages/OfflinePage'));
 
 const SuspenseWrap = ({ children }: { children: React.ReactNode }) => (
@@ -36,6 +38,17 @@ const router = createBrowserRouter([
             {
                 path: ROUTES.AUTH_OTP,
                 element: <SuspenseWrap><OtpPage /></SuspenseWrap>,
+            },
+        ],
+    },
+
+    // Admin Login
+    {
+        element: <RedirectIfAdminAuthenticated />,
+        children: [
+            {
+                path: ROUTES.ADMIN_LOGIN,
+                element: <SuspenseWrap><AdminLoginPage /></SuspenseWrap>,
             },
         ],
     },
@@ -81,16 +94,31 @@ const router = createBrowserRouter([
                                 path: ROUTES.PROFILE,
                                 element: <SuspenseWrap><ProfilePage /></SuspenseWrap>,
                             },
-                            // Admin routes (hidden unless admin)
-                            {
-                                path: ROUTES.ADMIN_QR_CREATE,
-                                element: <SuspenseWrap><AdminQrCreatePage /></SuspenseWrap>,
-                            },
-                            {
-                                path: ROUTES.ADMIN_QR_LIST,
-                                element: <SuspenseWrap><AdminQrListPage /></SuspenseWrap>,
-                            },
                         ],
+                    },
+                ],
+            },
+        ],
+    },
+
+    // Admin protected routes
+    {
+        element: <RequireAdmin />,
+        children: [
+            {
+                element: <AdminLayout />,
+                children: [
+                    {
+                        path: ROUTES.ADMIN_DASHBOARD,
+                        element: <Navigate to={ROUTES.ADMIN_BULK_QR} replace />,
+                    },
+                    {
+                        path: ROUTES.ADMIN_BULK_QR,
+                        element: <SuspenseWrap><AdminBulkQrPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_QR_CODES,
+                        element: <SuspenseWrap><AdminQrCodesPage /></SuspenseWrap>,
                     },
                 ],
             },

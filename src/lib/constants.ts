@@ -7,8 +7,10 @@ export const ROUTES = {
     TRANSACTIONS: '/wallet/transactions',
     SCAN_QR: '/scan',
     PROFILE: '/profile',
-    ADMIN_QR_CREATE: '/admin/qr/create',
-    ADMIN_QR_LIST: '/admin/qr/list',
+    ADMIN_LOGIN: '/admin/login',
+    ADMIN_DASHBOARD: '/admin',
+    ADMIN_BULK_QR: '/admin/bulk-qr',
+    ADMIN_QR_CODES: '/admin/qr-codes',
     OFFLINE: '/offline',
 } as const;
 

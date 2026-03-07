@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { requestOtp, verifyOtp, logout } from './api';
+import { adminLogin } from './adminApi';
 import { setTokens, clearTokens } from '../../services/auth';
 import { showToast } from '../../lib/toast';
 import type { OtpRequestPayload, LoginPayload } from '../../types/api';
@@ -34,6 +35,19 @@ export function useLogout() {
         onSettled: () => {
             clearTokens();
             window.location.href = '/auth/phone';
+        },
+    });
+}
+
+export function useAdminLogin() {
+    return useMutation({
+        mutationFn: (data: LoginPayload) => adminLogin(data),
+        onSuccess: (data) => {
+            setTokens(data);
+        },
+        onError: (error: Error) => {
+            const msg = error instanceof ApiError ? error.message : 'Login failed';
+            showToast(msg, 'error');
         },
     });
 }
