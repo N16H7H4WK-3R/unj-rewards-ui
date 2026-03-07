@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProfile, updateProfile } from './api';
 import { queryKeys } from '../../lib/constants';
-import { showToast } from '../../components/ui/Toast';
+import { showToast } from '../../lib/toast';
 import { ApiError } from '../../services/apiClient';
 import { updateFullName } from '../../services/auth';
 import type { ProfileUpdatePayload } from '../../types/api';

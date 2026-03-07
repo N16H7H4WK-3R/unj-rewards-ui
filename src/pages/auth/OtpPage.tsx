@@ -3,14 +3,13 @@ import type { KeyboardEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useVerifyOtp } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
-import type { RequestFor } from '../../types/api';
 
 const OTP_LENGTH = 4;
 
 export default function OtpPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { username, token, requestFor } = (location.state as { username: string; token: string; requestFor: RequestFor }) || {};
+    const { username, token } = (location.state as { username: string; token: string }) || {};
 
     const verifyOtp = useVerifyOtp();
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
@@ -54,9 +53,8 @@ export default function OtpPage() {
         if (!isComplete || !token) return;
         try {
             const data = await verifyOtp.mutateAsync({
-                role: 'technician',
-                requestFor: requestFor || 'login',
-                data: { username: token, password: otpValue },
+                username: token,
+                password: otpValue,
             });
 
             if (!data.user_role || data.user_role === 'null') {
@@ -86,7 +84,7 @@ export default function OtpPage() {
             <div className="w-full max-w-sm">
                 <h1 className="text-2xl font-bold text-text-primary mb-2">Verify OTP</h1>
                 <p className="text-sm text-text-muted mb-8">
-                    Enter the 6-digit code sent to <span className="font-semibold text-text-primary">+91 {username}</span>
+                    Enter the {OTP_LENGTH}-digit code sent to <span className="font-semibold text-text-primary">+91 {username}</span>
                 </p>
 
                 {/* OTP Inputs */}
@@ -102,7 +100,7 @@ export default function OtpPage() {
                             onChange={(e) => handleChange(index, e.target.value)}
                             onKeyDown={(e) => handleKeyDown(index, e)}
                             className={`
-                w-12 h-14 text-center text-lg font-bold rounded-xl border-2
+                w-14 h-16 text-center text-xl font-bold rounded-xl border-2
                 transition-all duration-200 bg-white
                 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                 ${digit ? 'border-primary' : 'border-border'}

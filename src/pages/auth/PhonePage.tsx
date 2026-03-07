@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +5,6 @@ import { z } from 'zod';
 import { useRequestOtp } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import type { RequestFor } from '../../types/api';
 
 const phoneSchema = z.object({
     username: z.string()
@@ -20,26 +18,18 @@ type PhoneFormData = z.infer<typeof phoneSchema>;
 export default function PhonePage() {
     const navigate = useNavigate();
     const requestOtp = useRequestOtp();
-    const [isLogin, setIsLogin] = useState(false);
 
     const { register, handleSubmit, formState: { errors } } = useForm<PhoneFormData>({
         resolver: zodResolver(phoneSchema),
     });
 
-    const requestFor: RequestFor = isLogin ? 'login' : 'register';
-
     const onSubmit = async (data: PhoneFormData) => {
         try {
-            const res = await requestOtp.mutateAsync({
-                role: 'technician',
-                requestFor,
-                data: { username: data.username },
-            });
+            const res = await requestOtp.mutateAsync({ username: data.username });
             navigate('/auth/otp', {
                 state: {
                     username: data.username,
                     token: res.token,
-                    requestFor,
                 },
             });
         } catch {
@@ -59,7 +49,7 @@ export default function PhonePage() {
 
                 <h1 className="text-2xl font-bold text-text-primary mb-2">UNJ Rewards</h1>
                 <p className="text-sm text-text-muted mb-8 text-center">
-                    {isLogin ? 'Welcome back! Login to continue' : 'Create an account or login to get started'}
+                    Welcome! Login with your phone number to continue
                 </p>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4">
@@ -79,17 +69,9 @@ export default function PhonePage() {
                         size="lg"
                         loading={requestOtp.isPending}
                     >
-                        {isLogin ? 'Send OTP' : 'Continue'}
+                        Send OTP
                     </Button>
                 </form>
-
-                <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="mt-4 text-sm text-primary font-medium hover:underline cursor-pointer"
-                >
-                    {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
-                </button>
             </div>
 
             {/* Bottom brand */}

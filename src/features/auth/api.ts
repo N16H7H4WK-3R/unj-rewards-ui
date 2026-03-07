@@ -5,20 +5,18 @@ import type {
     LoginPayload,
     LoginResponse,
     LogoutResponse,
-    UserRole,
-    RequestFor,
 } from '../../types/api';
 
-export function requestOtp(role: UserRole, requestFor: RequestFor, data: OtpRequestPayload) {
+export function requestOtp(data: OtpRequestPayload) {
     return apiClient<OtpRequestResponse>(
-        `/api/auth/${role}/${requestFor}/otp`,
+        '/api/auth/technician/login/otp',
         { method: 'POST', body: data, auth: false },
     );
 }
 
-export function verifyOtp(role: UserRole, requestFor: RequestFor, data: LoginPayload) {
+export function verifyOtp(data: LoginPayload) {
     return apiClient<LoginResponse>(
-        `/api/auth/${role}/${requestFor}`,
+        '/api/auth/technician/login',
         { method: 'POST', body: data, auth: false },
     );
 }
@@ -26,3 +24,4 @@ export function verifyOtp(role: UserRole, requestFor: RequestFor, data: LoginPay
 export function logout() {
     return apiClient<LogoutResponse>('/api/auth/logout', { method: 'POST' });
 }
+

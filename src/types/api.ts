@@ -13,7 +13,6 @@ export interface ApiErrorResponse {
 // ── Auth ──
 
 export type UserRole = 'technician' | 'dealer' | 'admin';
-export type RequestFor = 'login' | 'register';
 
 export interface OtpRequestPayload {
     username: string;

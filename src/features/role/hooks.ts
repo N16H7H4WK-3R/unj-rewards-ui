@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { selectRole } from './api';
 import { updateUserRole } from '../../services/auth';
-import { showToast } from '../../components/ui/Toast';
+import { showToast } from '../../lib/toast';
 import { ApiError } from '../../services/apiClient';
 import type { RoleSelectPayload } from '../../types/api';
 

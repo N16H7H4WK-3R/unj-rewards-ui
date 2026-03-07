@@ -19,9 +19,6 @@ npm run preview
 
 # Type checking
 npx tsc --noEmit
-
-# Lint
-npm run lint
 ```
 
 ## Environment Variables
@@ -32,11 +29,21 @@ npm run lint
 
 Copy `.env.example` to `.env` and fill in the values.
 
+## Auth Flow (Login Only)
+
+1. **Phone Number** → User enters 10-digit Indian mobile number
+2. **OTP Request** → `POST /api/auth/technician/login/otp` with `{ username }`
+3. **OTP Verify** → `POST /api/auth/technician/login` with `{ username: token, password: otp }`
+4. **Role Select** → if `user_role` is null, redirect to role selection
+5. **Home** → main app with wallet, QR scan, profile
+
+> There is **no registration flow** in the web app. Users must be pre-existing in the backend to log in.
+
 ## Project Structure
 
 ```
 src/
-├── app/           # Root providers, router, query client
+├── app/           # Root App component, router, query client
 ├── components/    # Shared UI: Button, Input, Card, Toast, Modal, Loader
 ├── features/      # Feature modules (api + hooks each)
 │   ├── auth/      # OTP request, verify, logout
@@ -48,25 +55,13 @@ src/
 │   └── admin/qr/  # Admin QR management
 ├── hooks/         # Shared hooks (service worker)
 ├── layouts/       # AppShell with bottom navigation
-├── lib/           # Config, constants, formatting utils
+├── lib/           # Config, constants, formatting utils, toast
 ├── pages/         # Route-level page components
 ├── routes/        # Route guards (auth, role)
 ├── services/      # API client, token storage
 ├── types/         # TypeScript API interfaces
 └── styles/        # (reserved)
 ```
-
-### Where to Add New Screens
-1. Create page in `src/pages/<feature>/`
-2. Add API function in `src/features/<feature>/api.ts`
-3. Add React Query hook in `src/features/<feature>/hooks.ts`
-4. Add route in `src/app/router.tsx`
-
-### Where API Hooks Live
-All in `src/features/<feature>/hooks.ts` — one per feature domain.
-
-### Tweaking Theme Tokens
-Edit the `@theme` block in `src/index.css`. All colors, shadows, and radii are CSS custom properties consumed by Tailwind.
 
 ## Token Storage Strategy
 
@@ -76,44 +71,26 @@ Edit the `@theme` block in `src/index.css`. All colors, shadows, and radii are C
 | Fallback | `sessionStorage` | Survives page refresh within same tab |
 | NOT used | `localStorage` | Avoided — vulnerable to XSS exfiltration |
 
-Tokens are set on login and cleared on logout or failed refresh.
+## Security
 
-## Security Notes
-
-- **No secrets** are stored in the client bundle
-- **CSP meta tag** in `index.html` restricts script/style/connect sources
-- **No `dangerouslySetInnerHTML`** anywhere in the codebase
-- **API responses are NOT cached** by the service worker
+- **No secrets** in the client bundle
+- **CSP meta tag** in `index.html`
+- **No `dangerouslySetInnerHTML`** anywhere
+- **API responses NOT cached** by service worker
 - **Strict TypeScript** mode enabled
-
-### CSP Recommendation for Production
-
-Set these headers on your CDN/reverse proxy:
-```
-Content-Security-Policy:
-  default-src 'self';
-  script-src 'self';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src 'self' https://fonts.gstatic.com;
-  img-src 'self' data: blob: https:;
-  connect-src 'self' https://your-api-domain.com;
-  media-src 'self' blob:;
-```
 
 ## PWA
 
-- **Install**: Use browser "Add to Home Screen" or the install prompt
-- **Offline**: Static assets are precached; navigation falls back to `/offline`
-- **Updates**: A toast notification appears when a new version is available — tap to refresh
-- **Lighthouse**: Designed for high PWA scores (manifest, SW, icons, theme_color)
+- **Install**: Use browser "Add to Home Screen"
+- **Offline**: Static assets precached; navigation falls back to `/offline`
+- **Updates**: Toast notification when new version available
 
 ### Replacing Placeholder Icons
 Replace `public/icons/icon-192.png` and `icon-512.png` with real PNG icons.
 
 ## Deployment
 
-1. Run `npm run build` → generates `dist/`
-2. Serve `dist/` from any static host (Vercel, Netlify, Cloudflare Pages, S3+CloudFront)
+1. `npm run build` → generates `dist/`
+2. Serve `dist/` from any static host
 3. Set `VITE_API_BASE_URL` to your production backend
-4. Configure CORS on your backend to allow the frontend origin
-5. Set production CSP headers (see above)
+4. Configure CORS on backend for frontend origin

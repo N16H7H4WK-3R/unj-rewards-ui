@@ -15,24 +15,38 @@ export default function ScanPage() {
     const [state, setState] = useState<ScanState>('scanning');
     const [scannedCode, setScannedCode] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
+
+    // Refs to guard against StrictMode double mount and duplicate scans
     const scannerRef = useRef<Html5Qrcode | null>(null);
+    const isMountedRef = useRef(false);
+    const hasScannedRef = useRef(false);
     const scannerContainerId = 'qr-reader';
 
-    const { data: qrData, isLoading: isValidating, error: validateError } = useQrValidate(
+    const { data: qrData, error: validateError } = useQrValidate(
         state === 'validating' || state === 'preview' ? scannedCode : null,
     );
     const redeemMutation = useQrRedeem();
 
-    // Start scanner
+    // Start scanner with guards against double initialization
     const startScanner = useCallback(async () => {
+        // Stop any existing scanner first
+        if (scannerRef.current) {
+            try { await scannerRef.current.stop(); } catch { /* noop */ }
+            scannerRef.current = null;
+        }
+
         setState('scanning');
         setScannedCode(null);
         setErrorMsg('');
+        hasScannedRef.current = false;
+
+        // Wait for DOM element to be available
+        await new Promise((r) => setTimeout(r, 300));
+
+        // Guard: don't start if unmounted during the delay
+        if (!isMountedRef.current) return;
 
         try {
-            // Small delay for DOM element to be available
-            await new Promise((r) => setTimeout(r, 300));
-
             const scanner = new Html5Qrcode(scannerContainerId);
             scannerRef.current = scanner;
 
@@ -40,6 +54,10 @@ export default function ScanPage() {
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
+                    // Guard: prevent duplicate scan callbacks
+                    if (hasScannedRef.current) return;
+                    hasScannedRef.current = true;
+
                     setScannedCode(decodedText);
                     setState('validating');
                     scanner.stop().catch(() => { });
@@ -47,32 +65,54 @@ export default function ScanPage() {
                 () => { },
             );
         } catch {
-            setErrorMsg('Camera access is required to scan QR codes');
-            setState('error');
+            if (isMountedRef.current) {
+                setErrorMsg('Camera access is required to scan QR codes');
+                setState('error');
+            }
         }
     }, []);
 
+    // Mount / unmount lifecycle
     useEffect(() => {
-        startScanner();
+        isMountedRef.current = true;
+
+        // Use a timeout or promise to ensure we're not calling setState synchronously in the effect body
+        // and avoid the set-state-in-effect lint error
+        const timer = setTimeout(() => {
+            if (isMountedRef.current) startScanner();
+        }, 0);
+
         return () => {
-            scannerRef.current?.stop().catch(() => { });
+            isMountedRef.current = false;
+            clearTimeout(timer);
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(() => { });
+                scannerRef.current = null;
+            }
         };
     }, [startScanner]);
 
-    // Handle validation result
-    useEffect(() => {
-        if (state === 'validating' && qrData) setState('preview');
-        if (state === 'validating' && validateError) {
-            setErrorMsg((validateError as Error).message || 'Invalid QR code');
-            setState('error');
-        }
-    }, [qrData, validateError, state]);
+    // Handle validation result - update state during render (state-from-props pattern)
+    // this avoids useEffect set-state-in-effect lint while being safe as long as we guard with a comparison
+    const [lastHandledCode, setLastHandledCode] = useState<string | null>(null);
+    const [lastHandledError, setLastHandledError] = useState<string | null>(null);
+
+    if (state === 'validating' && qrData && qrData.code !== lastHandledCode) {
+        setLastHandledCode(qrData.code);
+        setState('preview');
+    }
+
+    const errorStr = validateError ? (validateError as Error).message || 'Invalid QR code' : null;
+    if (state === 'validating' && errorStr && errorStr !== lastHandledError) {
+        setLastHandledError(errorStr);
+        setErrorMsg(errorStr);
+        setState('error');
+    }
 
     const handleRedeem = async () => {
         if (!scannedCode) return;
         setState('redeeming');
 
-        // Try to get location
         let lat: number | undefined;
         let lng: number | undefined;
         try {
@@ -127,7 +167,7 @@ export default function ScanPage() {
             )}
 
             {/* Validating */}
-            {(state === 'validating' && isValidating) && (
+            {state === 'validating' && (
                 <div className="flex flex-col items-center py-12">
                     <Loader />
                     <p className="mt-4 text-sm text-text-muted">Validating QR code...</p>

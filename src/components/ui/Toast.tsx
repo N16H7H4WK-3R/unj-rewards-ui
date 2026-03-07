@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-
-export type ToastType = 'success' | 'error' | 'info';
+import { setToastHandler } from '../../lib/toast';
+import type { ToastType } from '../../lib/toast';
 
 interface ToastState {
     message: string;
@@ -9,11 +9,6 @@ interface ToastState {
 }
 
 let toastIdCounter = 0;
-let addToastExternal: ((message: string, type?: ToastType) => void) | null = null;
-
-export function showToast(message: string, type: ToastType = 'info') {
-    addToastExternal?.(message, type);
-}
 
 const typeStyles: Record<ToastType, string> = {
     success: 'bg-success text-white',
@@ -39,8 +34,8 @@ export default function ToastContainer() {
     }, []);
 
     useEffect(() => {
-        addToastExternal = addToast;
-        return () => { addToastExternal = null; };
+        setToastHandler(addToast);
+        return () => { setToastHandler(null); };
     }, [addToast]);
 
     if (toasts.length === 0) return null;

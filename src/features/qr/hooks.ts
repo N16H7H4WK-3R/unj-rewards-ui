@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { validateQr, redeemQr } from './api';
 import { queryKeys } from '../../lib/constants';
-import { showToast } from '../../components/ui/Toast';
+import { showToast } from '../../lib/toast';
 import { ApiError } from '../../services/apiClient';
 import type { QRRedeemPayload } from '../../types/api';
 
