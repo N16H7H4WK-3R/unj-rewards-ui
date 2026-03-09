@@ -4,10 +4,15 @@ export interface ApiSuccessResponse<T> {
     data: T;
 }
 
-export interface ApiErrorResponse {
+export interface ApiErrorDetail {
     message: string;
     error_code: string;
     detail?: Record<string, string[]>;
+}
+
+export interface ApiErrorResponse {
+    timestamp?: string;
+    error: ApiErrorDetail;
 }
 
 // ── Auth ──
@@ -88,6 +93,7 @@ export interface Profile {
 export interface ProfileUpdatePayload {
     full_name?: string;
     email?: string;
+    photo?: File;
     dob?: string;
     gender?: string;
     district?: string;
@@ -127,6 +133,7 @@ export interface PaginationResponse<T> {
     page: number;
     size: number;
     total_elements: number;
+    total_pages: number;
     first: boolean;
     last: boolean;
 }
@@ -174,14 +181,20 @@ export interface Product {
 }
 
 export interface QRValidateResponse {
-    code: string;
+    public_code: string;
+    url?: string;
     points: string;
     status: string;
     product: Product;
 }
 
+/** The process endpoint may return a flat validate-style object or a wrapper with { public_code, qr }. */
+export type QRProcessResponse =
+    | QRValidateResponse
+    | { public_code: string; qr: QRValidateResponse };
+
 export interface QRRedeemPayload {
-    code: string;
+    public_code: string;
     latitude?: number;
     longitude?: number;
 }
@@ -197,15 +210,72 @@ export interface QRRedeemResponse {
 export interface QRCreatePayload {
     product_id: number;
     points: string;
+    count: number;
 }
 
 export interface QRListItem {
     id: number;
     code: string;
+    public_code: string;
     points: string;
     status: string;
     product: Product;
     redeemed_at: string | null;
     redeemed_by_username: string | null;
     created_at: string;
+}
+
+export interface QRBatch {
+    id: number;
+    batch_id: string;
+    product_name: string;
+    points: string;
+    count: number;
+    created_at: string;
+}
+
+export interface QRBatchListResponse {
+    batches: QRBatch[];
+}
+// ── Admin Management ──
+
+export interface Category {
+    id: number;
+    name: string;
+}
+
+export interface CategoryPayload {
+    name: string;
+}
+
+export interface AdminProduct {
+    id: number;
+    name: string;
+    category: number | Category;
+    default_points: number;
+}
+
+export interface AdminProductPayload {
+    name: string;
+    category: number;
+    default_points: number;
+}
+
+export interface AdminUser {
+    id: number;
+    username: string;
+    full_name: string;
+    role: string;
+}
+
+export interface AdminUserPayload {
+    username: string;
+    full_name: string;
+    role: string;
+}
+
+export interface DebitPayload {
+    user_id: number;
+    amount: number;
+    reason: string;
 }

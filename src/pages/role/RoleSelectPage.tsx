@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelectRole } from '../../features/role/hooks';
 import Button from '../../components/ui/Button';
 import type { RoleSelectPayload } from '../../types/api';
@@ -21,14 +21,18 @@ const roles: { value: RoleSelectPayload['role']; label: string; description: str
 
 export default function RoleSelectPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const selectRole = useSelectRole();
     const [selected, setSelected] = useState<RoleSelectPayload['role'] | null>(null);
+
+    const searchParams = new URLSearchParams(location.search);
+    const redirectTo = searchParams.get('redirectTo');
 
     const handleContinue = async () => {
         if (!selected) return;
         try {
             await selectRole.mutateAsync({ role: selected });
-            navigate('/profile', { replace: true, state: { fromRoleSelect: true } });
+            navigate(redirectTo || '/', { replace: true });
         } catch {
             // Error handled
         }

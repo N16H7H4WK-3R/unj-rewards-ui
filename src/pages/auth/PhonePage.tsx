@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,7 +17,11 @@ type PhoneFormData = z.infer<typeof phoneSchema>;
 
 export default function PhonePage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const requestOtp = useRequestOtp();
+
+    const searchParams = new URLSearchParams(location.search);
+    const redirectTo = searchParams.get('redirectTo');
 
     const { register, handleSubmit, formState: { errors } } = useForm<PhoneFormData>({
         resolver: zodResolver(phoneSchema),
@@ -30,6 +34,7 @@ export default function PhonePage() {
                 state: {
                     username: data.username,
                     token: res.token,
+                    redirectTo,
                 },
             });
         } catch {

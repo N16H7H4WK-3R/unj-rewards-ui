@@ -67,18 +67,25 @@ interface RequestOptions {
     body?: unknown;
     headers?: Record<string, string>;
     auth?: boolean;
+    responseType?: 'json' | 'blob';
 }
 
 export async function apiClient<T>(
     endpoint: string,
     options: RequestOptions = {},
 ): Promise<T> {
-    const { method = 'GET', body, headers = {}, auth = true } = options;
+    const { method = 'GET', body, headers = {}, auth = true, responseType = 'json' } = options;
 
     const fetchHeaders: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...headers,
     };
+
+    const isFormData = body instanceof FormData;
+    const isJsonBody = body && !isFormData && (typeof body === 'object' || Array.isArray(body));
+
+    if (isJsonBody) {
+        fetchHeaders['Content-Type'] = 'application/json';
+    }
 
     if (auth) {
         const token = getAccessToken();
@@ -89,10 +96,12 @@ export async function apiClient<T>(
 
     const url = `${config.apiBaseUrl}${endpoint}`;
 
+    const requestBody = isJsonBody ? JSON.stringify(body) : (body as BodyInit | undefined);
+
     let res = await fetch(url, {
         method,
         headers: fetchHeaders,
-        body: body ? JSON.stringify(body) : undefined,
+        body: requestBody,
     });
 
     // Handle 401 — try refresh once
@@ -106,7 +115,7 @@ export async function apiClient<T>(
             res = await fetch(url, {
                 method,
                 headers: fetchHeaders,
-                body: body ? JSON.stringify(body) : undefined,
+                body: requestBody,
             });
         } else {
             clearTokens();
@@ -115,17 +124,28 @@ export async function apiClient<T>(
         }
     }
 
-    const json = await res.json().catch(() => null);
-
     if (!res.ok) {
-        const err = json as ApiErrorResponse | null;
+        const json = await res.json().catch(() => null);
+        const errResponse = json as ApiErrorResponse | null;
+
+        // Extract error details from the nested structure or flat fallback
+        const message = errResponse?.error?.message || (json as Record<string, unknown> | null)?.message as string || `Request failed with status ${res.status}`;
+        const errorCode = errResponse?.error?.error_code || (json as Record<string, unknown> | null)?.error_code as string || 'unknown_error';
+        const detail = errResponse?.error?.detail || (json as Record<string, unknown> | null)?.detail as Record<string, string[]>;
+
         throw new ApiError(
-            err?.message || `Request failed with status ${res.status}`,
-            err?.error_code || 'unknown_error',
+            message,
+            errorCode,
             res.status,
-            err?.detail,
+            detail,
         );
     }
+
+    if (responseType === 'blob') {
+        return res.blob() as unknown as T;
+    }
+
+    const json = await res.json().catch(() => null);
 
     // Unwrap the ApiResponse wrapper — return data directly
     if (json && typeof json === 'object' && 'data' in json) {

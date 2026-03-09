@@ -2,16 +2,13 @@ import { useMutation } from '@tanstack/react-query';
 import { requestOtp, verifyOtp, logout } from './api';
 import { adminLogin } from './adminApi';
 import { setTokens, clearTokens } from '../../services/auth';
-import { showToast } from '../../lib/toast';
 import type { OtpRequestPayload, LoginPayload } from '../../types/api';
-import { ApiError } from '../../services/apiClient';
 
 export function useRequestOtp() {
     return useMutation({
         mutationFn: (data: OtpRequestPayload) => requestOtp(data),
-        onError: (error: Error) => {
-            const msg = error instanceof ApiError ? error.message : 'Failed to send OTP';
-            showToast(msg, 'error');
+        onError: () => {
+            // No toast per user request
         },
     });
 }
@@ -22,9 +19,8 @@ export function useVerifyOtp() {
         onSuccess: (data) => {
             setTokens(data);
         },
-        onError: (error: Error) => {
-            const msg = error instanceof ApiError ? error.message : 'Failed to verify OTP';
-            showToast(msg, 'error');
+        onError: () => {
+            // No toast per user request
         },
     });
 }
@@ -45,9 +41,8 @@ export function useAdminLogin() {
         onSuccess: (data) => {
             setTokens(data);
         },
-        onError: (error: Error) => {
-            const msg = error instanceof ApiError ? error.message : 'Login failed';
-            showToast(msg, 'error');
+        onError: () => {
+            // No toast per user request
         },
     });
 }

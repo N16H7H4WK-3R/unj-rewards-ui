@@ -57,10 +57,15 @@ export default function OtpPage() {
                 password: otpValue,
             });
 
+            const redirectTarget = (location.state as { redirectTo?: string } | null)?.redirectTo;
+
             if (!data.user_role || data.user_role === 'null') {
-                navigate('/role/select', { replace: true });
+                const target = redirectTarget
+                    ? `/role/select?redirectTo=${encodeURIComponent(redirectTarget)}`
+                    : '/role/select';
+                navigate(target, { replace: true });
             } else {
-                navigate('/', { replace: true });
+                navigate(redirectTarget || '/', { replace: true });
             }
         } catch {
             // Error handled by hook

@@ -1,9 +1,12 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { isAuthenticated, getUserRole } from '../services/auth';
 
 export function RequireAuth() {
+    const location = useLocation();
+
     if (!isAuthenticated()) {
-        return <Navigate to="/auth/phone" replace />;
+        const redirectUrl = encodeURIComponent(location.pathname + location.search);
+        return <Navigate to={`/auth/phone?redirectTo=${redirectUrl}`} replace />;
     }
     return <Outlet />;
 }

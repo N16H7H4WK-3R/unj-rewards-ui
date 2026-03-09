@@ -11,6 +11,14 @@ export const ROUTES = {
     ADMIN_DASHBOARD: '/admin',
     ADMIN_BULK_QR: '/admin/bulk-qr',
     ADMIN_QR_CODES: '/admin/qr-codes',
+    ADMIN_QR_LIST: '/admin/qr-list',
+    ADMIN_CATEGORIES: '/admin/categories',
+    ADMIN_CREATE_CATEGORY: '/admin/categories/create',
+    ADMIN_PRODUCTS: '/admin/products',
+    ADMIN_CREATE_PRODUCT: '/admin/products/create',
+    ADMIN_USERS: '/admin/users',
+    ADMIN_CREATE_USER: '/admin/users/create',
+    ADMIN_DEBIT: '/admin/debit',
     OFFLINE: '/offline',
 } as const;
 
@@ -22,4 +30,8 @@ export const queryKeys = {
     kycStatus: () => ['kyc-status'] as const,
     qrValidate: (code: string) => ['qr-validate', code] as const,
     adminQrList: (page: number, size: number) => ['admin-qr-list', page, size] as const,
+    adminQrBatches: () => ['admin-qr-batches'] as const,
+    adminCategories: (page: number, size: number) => ['admin-categories', page, size] as const,
+    adminProducts: (page: number, size: number) => ['admin-products', page, size] as const,
+    adminUsers: (role: string, page: number, size: number) => ['admin-users', role, page, size] as const,
 } as const;

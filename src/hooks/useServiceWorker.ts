@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { showToast } from '../lib/toast';
 
 export function useServiceWorker() {
     const {
@@ -13,7 +12,7 @@ export function useServiceWorker() {
             }
         },
         onNeedRefresh() {
-            showToast('Update available — tap to refresh', 'info');
+            // No toast per user request
         },
         onRegisterError(error) {
             console.error('SW registration error', error);

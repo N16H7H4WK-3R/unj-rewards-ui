@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +8,7 @@ import { useLogout } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
+import { config } from '../../lib/config';
 
 const profileSchema = z.object({
     full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -28,6 +29,20 @@ export default function ProfilePage() {
     const updateProfile = useUpdateProfile();
     const logoutMutation = useLogout();
     const [isEditing, setIsEditing] = useState(!!fromRoleSelect);
+    const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (selectedPhoto) {
+            const url = URL.createObjectURL(selectedPhoto);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } else {
+            setPreviewUrl(null);
+        }
+    }, [selectedPhoto]);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
@@ -47,12 +62,14 @@ export default function ProfilePage() {
             await updateProfile.mutateAsync({
                 full_name: data.full_name,
                 email: data.email || undefined,
+                photo: selectedPhoto || undefined,
                 dob: data.dob || undefined,
                 gender: data.gender || undefined,
                 district: data.district || undefined,
                 state: data.state || undefined,
                 pincode: data.pincode || undefined,
             });
+            setSelectedPhoto(null);
             setIsEditing(false);
         } catch {
             // Error handled by hook
@@ -80,14 +97,40 @@ export default function ProfilePage() {
 
             {/* Profile Image */}
             <div className="flex flex-col items-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                    {profile?.photo ? (
-                        <img src={profile.photo} alt="" className="w-20 h-20 rounded-full object-cover" />
-                    ) : (
-                        <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
+                <div className="relative mb-3 group">
+                    <div
+                        className={`w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm ${isEditing ? 'cursor-pointer hover:border-primary transition-colors' : ''}`}
+                        onClick={() => isEditing && fileInputRef.current?.click()}
+                    >
+                        {previewUrl ? (
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : profile?.photo ? (
+                            <img src={profile.photo.startsWith('http') ? profile.photo : `${config.apiBaseUrl}${profile.photo}`} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                            </svg>
+                        )}
+                    </div>
+                    {isEditing && (
+                        <div
+                            className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full cursor-pointer shadow-md hover:scale-110 transition-transform"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 16a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3zM12 15a3 3 0 100-6 3 3 0 000 6z" />
+                            </svg>
+                        </div>
                     )}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) setSelectedPhoto(e.target.files[0]);
+                        }}
+                    />
                 </div>
                 <p className="text-sm font-semibold text-text-primary">{profile?.full_name || 'User'}</p>
                 <p className="text-xs text-text-muted">+91 {profile?.username}</p>
@@ -164,7 +207,7 @@ export default function ProfilePage() {
                                 variant="ghost"
                                 fullWidth
                                 size="lg"
-                                onClick={() => { setIsEditing(false); reset(); }}
+                                onClick={() => { setIsEditing(false); setSelectedPhoto(null); reset(); }}
                             >
                                 Cancel
                             </Button>

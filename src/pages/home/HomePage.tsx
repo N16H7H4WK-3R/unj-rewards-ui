@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import Loader from '../../components/ui/Loader';
 import { formatBalance } from '../../lib/format';
 import { ROUTES } from '../../lib/constants';
+import { config } from '../../lib/config';
 
 export default function HomePage() {
     const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         {user.photo ? (
-                            <img src={user.photo} alt="" className="w-10 h-10 rounded-full object-cover" />
+                            <img src={user.photo.startsWith('http') ? user.photo : `${config.apiBaseUrl}${user.photo}`} alt="" className="w-10 h-10 rounded-full object-cover" />
                         ) : (
                             <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />

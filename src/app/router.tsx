@@ -18,6 +18,14 @@ const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const AdminLoginPage = lazy(() => import('../pages/admin/AdminLoginPage'));
 const AdminBulkQrPage = lazy(() => import('../pages/admin/AdminBulkQrPage'));
 const AdminQrCodesPage = lazy(() => import('../pages/admin/AdminQrCodesPage'));
+const AdminQrListPage = lazy(() => import('../pages/admin/AdminQrListPage'));
+const AdminCategoriesPage = lazy(() => import('../pages/admin/AdminCategoriesPage'));
+const AdminCreateCategoryPage = lazy(() => import('../pages/admin/AdminCreateCategoryPage'));
+const AdminProductsListPage = lazy(() => import('../pages/admin/AdminProductsListPage'));
+const AdminCreateProductPage = lazy(() => import('../pages/admin/AdminCreateProductPage'));
+const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'));
+const AdminCreateUserPage = lazy(() => import('../pages/admin/AdminCreateUserPage'));
+const AdminDebitPage = lazy(() => import('../pages/admin/AdminDebitPage'));
 const OfflinePage = lazy(() => import('../pages/OfflinePage'));
 
 const SuspenseWrap = ({ children }: { children: React.ReactNode }) => (
@@ -98,6 +106,11 @@ const router = createBrowserRouter([
                     },
                 ],
             },
+            // Handle /:appCode/:qrCode pattern
+            {
+                path: '/:appCodeAlgoVersion/:qrCode',
+                element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
+            },
         ],
     },
 
@@ -119,6 +132,38 @@ const router = createBrowserRouter([
                     {
                         path: ROUTES.ADMIN_QR_CODES,
                         element: <SuspenseWrap><AdminQrCodesPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_QR_LIST,
+                        element: <SuspenseWrap><AdminQrListPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_CATEGORIES,
+                        element: <SuspenseWrap><AdminCategoriesPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_CREATE_CATEGORY,
+                        element: <SuspenseWrap><AdminCreateCategoryPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_PRODUCTS,
+                        element: <SuspenseWrap><AdminProductsListPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_CREATE_PRODUCT,
+                        element: <SuspenseWrap><AdminCreateProductPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_USERS,
+                        element: <SuspenseWrap><AdminUsersPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_CREATE_USER,
+                        element: <SuspenseWrap><AdminCreateUserPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.ADMIN_DEBIT,
+                        element: <SuspenseWrap><AdminDebitPage /></SuspenseWrap>,
                     },
                 ],
             },
