@@ -7,12 +7,13 @@ import { ROUTES } from '../../lib/constants';
 
 export default function WalletPage() {
     const navigate = useNavigate();
-    const { data, isLoading } = useTransactions(0, 5);
+    const { data, isLoading } = useTransactions(0, 10);
 
     if (isLoading) return <Loader className="min-h-screen" />;
 
     const balance = data?.wallet_balance ?? '0';
     const recentTxns = data?.transactions.content ?? [];
+    const totalTxns = data?.transactions.total_elements ?? 0;
 
     return (
         <div className="px-4 pt-4 pb-6">
@@ -121,6 +122,11 @@ export default function WalletPage() {
                                 </div>
                             );
                         })}
+                        {totalTxns > 10 && (
+                            <p className="text-center text-[10px] text-text-muted mt-4">
+                                Showing only the latest 10 transactions. Click "See All" to view your full history.
+                            </p>
+                        )}
                     </div>
                 )}
             </div>
