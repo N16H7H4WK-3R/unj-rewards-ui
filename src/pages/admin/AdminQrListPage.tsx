@@ -40,7 +40,7 @@ export default function AdminQrListPage() {
                                     {data.content.map((qr) => (
                                         <tr key={qr.id} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4 font-mono text-xs font-bold text-text-primary">
-                                                {qr.code}
+                                                {qr.public_code}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <p className="text-sm font-semibold text-text-primary">{qr.product.name}</p>

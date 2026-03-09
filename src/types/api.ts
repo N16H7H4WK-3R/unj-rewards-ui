@@ -215,7 +215,6 @@ export interface QRCreatePayload {
 
 export interface QRListItem {
     id: number;
-    code: string;
     public_code: string;
     points: string;
     status: string;
