@@ -11,7 +11,7 @@ export default function AdminQrListPage() {
     if (isLoading) return <Loader className="min-h-[400px]" />;
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
             <header className="mb-8">
                 <h1 className="text-2xl font-bold text-text-primary">Individual QR Codes</h1>
                 <p className="text-sm text-text-muted mt-1">Detailed list of all generated QR codes</p>
@@ -34,6 +34,7 @@ export default function AdminQrListPage() {
                                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-text-muted">Status</th>
                                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-text-muted">Created At</th>
                                         <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-text-muted">User</th>
+                                        <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-text-muted">Redeemed At</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -65,6 +66,13 @@ export default function AdminQrListPage() {
                                                     <span className="text-xs font-medium text-text-primary px-2 py-1 bg-primary/5 rounded-md">
                                                         {qr.redeemed_by_username}
                                                     </span>
+                                                ) : (
+                                                    <span className="text-xs text-text-light">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-text-muted">
+                                                {qr.redeemed_at ? (
+                                                    formatDateTime(qr.redeemed_at)
                                                 ) : (
                                                     <span className="text-xs text-text-light">—</span>
                                                 )}
