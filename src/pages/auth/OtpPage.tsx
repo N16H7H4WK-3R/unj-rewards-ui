@@ -3,6 +3,8 @@ import type { KeyboardEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useVerifyOtp } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
 
 const OTP_LENGTH = 4;
 
@@ -13,6 +15,7 @@ export default function OtpPage() {
 
     const verifyOtp = useVerifyOtp();
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
+    const [apiError, setApiError] = useState<string | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Redirect if no state
@@ -22,6 +25,7 @@ export default function OtpPage() {
 
     const handleChange = (index: number, value: string) => {
         if (!/^\d*$/.test(value)) return;
+        setApiError(null);
         const newOtp = [...otp];
         newOtp[index] = value.slice(-1);
         setOtp(newOtp);
@@ -52,6 +56,7 @@ export default function OtpPage() {
     const handleVerify = async () => {
         if (!isComplete || !token) return;
         try {
+            setApiError(null);
             const data = await verifyOtp.mutateAsync({
                 username: token,
                 password: otpValue,
@@ -67,8 +72,12 @@ export default function OtpPage() {
             } else {
                 navigate(redirectTarget || '/', { replace: true });
             }
-        } catch {
-            // Error handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Verification failed. Please check your OTP.');
+            }
         }
     };
 
@@ -93,7 +102,7 @@ export default function OtpPage() {
                 </p>
 
                 {/* OTP Inputs */}
-                <div className="flex gap-3 mb-8 justify-center" onPaste={handlePaste}>
+                <div className="flex gap-3 mb-6 justify-center" onPaste={handlePaste}>
                     {otp.map((digit, index) => (
                         <input
                             key={index}
@@ -108,11 +117,19 @@ export default function OtpPage() {
                 w-14 h-16 text-center text-xl font-bold rounded-xl border-2
                 transition-all duration-200 bg-white
                 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                ${digit ? 'border-primary' : 'border-border'}
+                ${digit ? 'border-primary' : (apiError ? 'border-error/50' : 'border-border')}
               `}
                             aria-label={`OTP digit ${index + 1}`}
                         />
                     ))}
+                </div>
+
+                <div className="mb-6">
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
+                    />
                 </div>
 
                 <Button

@@ -5,6 +5,9 @@ import { useAdminCreateQr, useProducts } from '../../features/qr/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const createSchema = z.object({
     product_id: z.string().min(1, 'Product is required'),
@@ -16,6 +19,7 @@ type CreateFormData = z.infer<typeof createSchema>;
 export default function AdminQrCreatePage() {
     const { data: products, isLoading: productsLoading } = useProducts();
     const createQr = useAdminCreateQr();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateFormData>({
         resolver: zodResolver(createSchema),
@@ -23,26 +27,12 @@ export default function AdminQrCreatePage() {
 
     const onSubmit = async (data: CreateFormData) => {
         try {
-            // We use the same bulk create API but with count 1 for single creation
-            // Note: adminCreateQr returns a blob (CSV), but for single creation 
-            // the requirements might imply getting the code back in JSON?
-            // "4A: Admin QR Code Generation (Single) ... returns code"
-            // Wait, my adminCreateQr returns a blob. 
-            // If the user wants a single code returned in JSON, I might need a different API.
-            // Let's check if there's a JSON version of create.
-
+            setApiError(null);
             const blob = await createQr.mutateAsync({
                 product_id: Number(data.product_id),
                 points: data.points,
                 count: 1,
             });
-
-            // Since it's a blob/CSV, we can't easily show the code unless we parse it.
-            // But the requirement says "returns code".
-            // I'll assume for now that the bulk API is what we have and it returns a CSV.
-            // If the user really wants a JSON response for single, I'd need another endpoint.
-
-            // No toast per user request
 
             // Trigger download
             const url = window.URL.createObjectURL(blob);
@@ -56,8 +46,12 @@ export default function AdminQrCreatePage() {
             window.URL.revokeObjectURL(url);
 
             reset();
-        } catch {
-            // Handled
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to generate QR code. Please try again.');
+            }
         }
     };
 
@@ -72,11 +66,11 @@ export default function AdminQrCreatePage() {
                     <div className="space-y-1">
                         <label className="text-sm font-semibold text-text-primary ml-1">Select Product</label>
                         <select
-                            {...register('product_id')}
+                            {...register('product_id', { onChange: () => setApiError(null) })}
                             className={`
                                 w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white
                                 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-                                ${errors.product_id ? 'border-error' : 'border-border'}
+                                ${errors.product_id ? 'border-error' : (apiError ? 'border-error/20' : 'border-border')}
                             `}
                         >
                             <option value="">Choose a product</option>
@@ -91,7 +85,13 @@ export default function AdminQrCreatePage() {
                         label="Points"
                         placeholder="e.g. 100.00"
                         error={errors.points?.message}
-                        {...register('points')}
+                        {...register('points', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <div className="pt-4">

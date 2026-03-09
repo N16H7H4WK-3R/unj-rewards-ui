@@ -1,9 +1,9 @@
 const TOKEN_KEYS = {
-    ACCESS: 'unj_access_token',
-    REFRESH: 'unj_refresh_token',
-    USER_ROLE: 'unj_user_role',
-    USERNAME: 'unj_username',
-    FULL_NAME: 'unj_full_name',
+    ACCESS: 'access_token',
+    REFRESH: 'refresh_token',
+    USER_ROLE: 'user_role',
+    USERNAME: 'username',
+    FULL_NAME: 'full_name',
 } as const;
 
 // In-memory token store (primary — more secure than localStorage)

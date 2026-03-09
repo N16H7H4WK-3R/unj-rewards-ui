@@ -6,6 +6,9 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../lib/constants';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Username is required'),
@@ -17,6 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function AdminLoginForm() {
     const navigate = useNavigate();
     const login = useAdminLogin();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
@@ -24,10 +28,15 @@ export default function AdminLoginForm() {
 
     const onSubmit = async (data: LoginFormData) => {
         try {
+            setApiError(null);
             await login.mutateAsync(data);
             navigate(ROUTES.ADMIN_DASHBOARD);
-        } catch {
-            // Error handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Login failed. Please check your credentials.');
+            }
         }
     };
 
@@ -37,7 +46,7 @@ export default function AdminLoginForm() {
                 label="Username"
                 placeholder="Enter admin username"
                 error={errors.username?.message}
-                {...register('username')}
+                {...register('username', { onChange: () => setApiError(null) })}
             />
 
             <Input
@@ -45,7 +54,13 @@ export default function AdminLoginForm() {
                 type="password"
                 placeholder="Enter admin password"
                 error={errors.password?.message}
-                {...register('password')}
+                {...register('password', { onChange: () => setApiError(null) })}
+            />
+
+            <StatusMessage
+                type="error"
+                message={apiError}
+                onDismiss={() => setApiError(null)}
             />
 
             <Button

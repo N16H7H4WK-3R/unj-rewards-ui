@@ -5,6 +5,9 @@ import { z } from 'zod';
 import { useRequestOtp } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const phoneSchema = z.object({
     username: z.string()
@@ -19,6 +22,7 @@ export default function PhonePage() {
     const navigate = useNavigate();
     const location = useLocation();
     const requestOtp = useRequestOtp();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const searchParams = new URLSearchParams(location.search);
     const redirectTo = searchParams.get('redirectTo');
@@ -29,6 +33,7 @@ export default function PhonePage() {
 
     const onSubmit = async (data: PhoneFormData) => {
         try {
+            setApiError(null);
             const res = await requestOtp.mutateAsync({ username: data.username });
             navigate('/auth/otp', {
                 state: {
@@ -37,8 +42,12 @@ export default function PhonePage() {
                     redirectTo,
                 },
             });
-        } catch {
-            // Error handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Something went wrong. Please try again.');
+            }
         }
     };
 
@@ -65,7 +74,13 @@ export default function PhonePage() {
                         maxLength={10}
                         inputMode="numeric"
                         error={errors.username?.message}
-                        {...register('username')}
+                        {...register('username', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <Button

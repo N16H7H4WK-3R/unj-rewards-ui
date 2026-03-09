@@ -5,6 +5,9 @@ import { useDebitUserWallet, useAdminUsers } from '../../features/admin/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const debitSchema = z.object({
     user_id: z.string().min(1, 'User is required'),
@@ -20,6 +23,7 @@ export default function AdminDebitPage() {
     // Fetch users (technicians mostly) to select from
     const { data: usersData, isLoading: usersLoading } = useAdminUsers('Technician', 0, 100);
     const debitWallet = useDebitUserWallet();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<DebitFormData>({
         resolver: zodResolver(debitSchema),
@@ -27,15 +31,19 @@ export default function AdminDebitPage() {
 
     const onSubmit = async (data: DebitFormData) => {
         try {
+            setApiError(null);
             await debitWallet.mutateAsync({
                 user_id: Number(data.user_id),
                 amount: Number(data.amount),
                 reason: data.reason,
             });
-            // No toast per user request
             reset();
-        } catch {
-            // Handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to process debit. Please check user balance and try again.');
+            }
         }
     };
 
@@ -53,11 +61,11 @@ export default function AdminDebitPage() {
                     <div className="space-y-1">
                         <label className="text-sm font-semibold text-text-primary ml-1">Select User</label>
                         <select
-                            {...register('user_id')}
+                            {...register('user_id', { onChange: () => setApiError(null) })}
                             className={`
                                 w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white
                                 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-                                ${errors.user_id ? 'border-error' : 'border-border'}
+                                ${errors.user_id ? 'border-error' : (apiError ? 'border-error/20' : 'border-border')}
                             `}
                         >
                             <option value="">Choose a user</option>
@@ -73,14 +81,20 @@ export default function AdminDebitPage() {
                         type="number"
                         placeholder="e.g. 500"
                         error={errors.amount?.message}
-                        {...register('amount')}
+                        {...register('amount', { onChange: () => setApiError(null) })}
                     />
 
                     <Input
                         label="Reason"
                         placeholder="e.g. Gift redemption"
                         error={errors.reason?.message}
-                        {...register('reason')}
+                        {...register('reason', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <div className="pt-4">

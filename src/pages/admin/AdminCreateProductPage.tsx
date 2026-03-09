@@ -6,7 +6,10 @@ import { useCreateAdminProduct, useAdminCategories } from '../../features/admin/
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
+import StatusMessage from '../../components/ui/StatusMessage';
 import { ROUTES } from '../../lib/constants';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const productSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -23,6 +26,7 @@ export default function AdminCreateProductPage() {
     const createProduct = useCreateAdminProduct();
     // Assuming small number of categories for the create form, fetching first page
     const { data: categoriesData, isLoading: categoriesLoading } = useAdminCategories(0, 100);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ProductFormData>({
         resolver: zodResolver(productSchema),
@@ -33,15 +37,19 @@ export default function AdminCreateProductPage() {
 
     const onSubmit = async (data: ProductFormData) => {
         try {
+            setApiError(null);
             await createProduct.mutateAsync({
                 name: data.name,
                 category: Number(data.category),
                 default_points: Number(data.default_points),
             });
-            // No toast per user request
             reset(); navigate(ROUTES.ADMIN_PRODUCTS);
-        } catch {
-            // Handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to create product. Please try again.');
+            }
         }
     };
 
@@ -60,17 +68,17 @@ export default function AdminCreateProductPage() {
                         label="Product Name"
                         placeholder="e.g. UNJ Fan 50W"
                         error={errors.name?.message}
-                        {...register('name')}
+                        {...register('name', { onChange: () => setApiError(null) })}
                     />
 
                     <div className="space-y-1">
                         <label className="text-sm font-semibold text-text-primary ml-1">Category</label>
                         <select
-                            {...register('category')}
+                            {...register('category', { onChange: () => setApiError(null) })}
                             className={`
                                 w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white
                                 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-                                ${errors.category ? 'border-error' : 'border-border'}
+                                ${errors.category ? 'border-error' : (apiError ? 'border-error/20' : 'border-border')}
                             `}
                         >
                             <option value="">Choose a category</option>
@@ -86,7 +94,13 @@ export default function AdminCreateProductPage() {
                         type="number"
                         placeholder="e.g. 50"
                         error={errors.default_points?.message}
-                        {...register('default_points')}
+                        {...register('default_points', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <div className="pt-4 flex gap-3">

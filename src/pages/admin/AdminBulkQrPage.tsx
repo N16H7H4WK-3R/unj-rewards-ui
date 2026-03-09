@@ -6,6 +6,9 @@ import type { Category } from '../../types/api';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const bulkQrSchema = z.object({
     product_id: z.string().min(1, 'Product is required'),
@@ -20,6 +23,7 @@ type BulkQrFormData = z.infer<typeof bulkQrSchema>;
 export default function AdminBulkQrPage() {
     const { data: products, isLoading: productsLoading } = useProducts();
     const createQr = useAdminCreateQr();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<BulkQrFormData>({
         resolver: zodResolver(bulkQrSchema),
@@ -27,6 +31,7 @@ export default function AdminBulkQrPage() {
 
     const onSubmit = async (data: BulkQrFormData) => {
         try {
+            setApiError(null);
             const blob = await createQr.mutateAsync({
                 product_id: Number(data.product_id),
                 points: data.points,
@@ -44,10 +49,13 @@ export default function AdminBulkQrPage() {
             link.parentNode?.removeChild(link);
             window.URL.revokeObjectURL(url);
 
-            // No toast per user request
             reset();
-        } catch {
-            // Handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to generate QRs. Please try again.');
+            }
         }
     };
 
@@ -65,11 +73,11 @@ export default function AdminBulkQrPage() {
                     <div className="space-y-1">
                         <label className="text-sm font-semibold text-text-primary ml-1">Select Product</label>
                         <select
-                            {...register('product_id')}
+                            {...register('product_id', { onChange: () => setApiError(null) })}
                             className={`
                                 w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white
                                 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-                                ${errors.product_id ? 'border-error' : 'border-border'}
+                                ${errors.product_id ? 'border-error' : (apiError ? 'border-error/20' : 'border-border')}
                             `}
                         >
                             <option value="">Choose a product</option>
@@ -84,7 +92,7 @@ export default function AdminBulkQrPage() {
                         label="Points per QR"
                         placeholder="e.g. 50.00"
                         error={errors.points?.message}
-                        {...register('points')}
+                        {...register('points', { onChange: () => setApiError(null) })}
                     />
 
                     <Input
@@ -92,7 +100,13 @@ export default function AdminBulkQrPage() {
                         type="number"
                         placeholder="e.g. 100"
                         error={errors.count?.message}
-                        {...register('count')}
+                        {...register('count', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <div className="pt-4">
@@ -115,7 +129,7 @@ export default function AdminBulkQrPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p className="text-xs text-text-muted leading-relaxed">
-                        Generating a large number of QR codes may take a few seconds. The CSV file will include the obfuscated public codes for printing.
+                        Generating a large number of QR codes may take a few seconds. The CSV file will include the public codes for printing.
                     </p>
                 </div>
             </div>

@@ -9,6 +9,8 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
 import { config } from '../../lib/config';
+import StatusMessage from '../../components/ui/StatusMessage';
+import { ApiError } from '../../services/apiClient';
 
 const profileSchema = z.object({
     full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -31,6 +33,8 @@ export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(!!fromRoleSelect);
     const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -59,6 +63,8 @@ export default function ProfilePage() {
 
     const onSubmit = async (data: ProfileFormData) => {
         try {
+            setApiError(null);
+            setSuccessMessage(null);
             await updateProfile.mutateAsync({
                 full_name: data.full_name,
                 email: data.email || undefined,
@@ -71,8 +77,15 @@ export default function ProfilePage() {
             });
             setSelectedPhoto(null);
             setIsEditing(false);
-        } catch {
-            // Error handled by hook
+            setSuccessMessage('Profile updated successfully!');
+            // Auto hide success message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to update profile. Please try again.');
+            }
         }
     };
 
@@ -139,6 +152,20 @@ export default function ProfilePage() {
                         {profile.role}
                     </span>
                 )}
+
+                <div className="w-full max-w-xs mt-2">
+                    <StatusMessage
+                        type="success"
+                        message={successMessage}
+                        onDismiss={() => setSuccessMessage(null)}
+                        autoDismiss={true}
+                    />
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
+                    />
+                </div>
             </div>
 
             {isEditing ? (
@@ -147,27 +174,27 @@ export default function ProfilePage() {
                         label="Full Name"
                         placeholder="Enter your full name"
                         error={errors.full_name?.message}
-                        {...register('full_name')}
+                        {...register('full_name', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
                     <Input
                         label="Email"
                         type="email"
                         placeholder="your@email.com"
                         error={errors.email?.message}
-                        {...register('email')}
+                        {...register('email', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
                     <Input
                         label="Date of Birth"
                         type="date"
                         error={errors.dob?.message}
-                        {...register('dob')}
+                        {...register('dob', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
 
                     <div>
                         <label className="block text-sm font-medium text-text-primary mb-1.5">Gender</label>
                         <select
                             className="w-full px-4 py-3 rounded-xl border border-border bg-white text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                            {...register('gender')}
+                            {...register('gender', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         >
                             <option value="">Select gender</option>
                             <option value="Male">Male</option>
@@ -180,13 +207,13 @@ export default function ProfilePage() {
                         label="District"
                         placeholder="Enter district"
                         error={errors.district?.message}
-                        {...register('district')}
+                        {...register('district', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
                     <Input
                         label="State"
                         placeholder="Enter state"
                         error={errors.state?.message}
-                        {...register('state')}
+                        {...register('state', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
                     <Input
                         label="Pincode"
@@ -194,7 +221,7 @@ export default function ProfilePage() {
                         maxLength={6}
                         inputMode="numeric"
                         error={errors.pincode?.message}
-                        {...register('pincode')}
+                        {...register('pincode', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
 
                     <div className="pt-2 space-y-3">

@@ -5,7 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateAdminCategory } from '../../features/admin/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import StatusMessage from '../../components/ui/StatusMessage';
 import { ROUTES } from '../../lib/constants';
+import { ApiError } from '../../services/apiClient';
+import { useState } from 'react';
 
 const categorySchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -16,6 +19,7 @@ type CategoryFormData = z.infer<typeof categorySchema>;
 export default function AdminCreateCategoryPage() {
     const navigate = useNavigate();
     const createCategory = useCreateAdminCategory();
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<CategoryFormData>({
         resolver: zodResolver(categorySchema),
@@ -23,12 +27,16 @@ export default function AdminCreateCategoryPage() {
 
     const onSubmit = async (data: CategoryFormData) => {
         try {
+            setApiError(null);
             await createCategory.mutateAsync(data);
-            // No toast per user request
             reset();
             navigate(ROUTES.ADMIN_CATEGORIES);
-        } catch {
-            // Handled by hook
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to create category. Please try again.');
+            }
         }
     };
 
@@ -45,7 +53,13 @@ export default function AdminCreateCategoryPage() {
                         label="Category Name"
                         placeholder="e.g. Electrical"
                         error={errors.name?.message}
-                        {...register('name')}
+                        {...register('name', { onChange: () => setApiError(null) })}
+                    />
+
+                    <StatusMessage
+                        type="error"
+                        message={apiError}
+                        onDismiss={() => setApiError(null)}
                     />
 
                     <div className="pt-4 flex gap-3">
