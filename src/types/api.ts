@@ -175,7 +175,7 @@ export interface KYCEntity {
 
 export interface KYCStatus {
     kyc_status: KYCEntity[];
-    aadhar_number: string | null;
+    aadhaar_number: string | null;
     pan_number: string | null;
 }
 
@@ -183,6 +183,74 @@ export interface HomeData {
     user: HomeUser;
     wallet: Wallet;
     kyc: KYCStatus;
+}
+
+// ── KYC ──
+
+export interface KycOtpRequestPayload {
+    aadhaar_number: string;
+    pan_number: string;
+}
+
+export interface KycOtpRequestResponse {
+    reference_id: string;
+    pan_number: string;
+    aadhaar_number: string;
+}
+
+export interface AadhaarAddress {
+    country: string;
+    district: string;
+    house: string;
+    landmark: string;
+    pincode: string;
+    post_office: string;
+    state: string;
+    street: string;
+    subdistrict: string;
+    vtc: string;
+}
+
+export interface AadhaarData {
+    reference_id: number;
+    status: string;
+    message: string;
+    care_of: string;
+    full_address: string;
+    date_of_birth: string;
+    email_hash: string;
+    gender: string;
+    name: string;
+    address: AadhaarAddress;
+    year_of_birth: string;
+    mobile_hash: string;
+    photo: string;
+    share_code: string;
+}
+
+export interface KycOtpVerifyPayload {
+    otp: string;
+    reference_id: string;
+    aadhaar_number: string;
+    pan_number: string;
+}
+
+export interface KycOtpVerifyResponse {
+    message: string;
+    pan_link_status: 'VERIFIED' | 'PENDING' | 'NOT_LINKED' | 'LINK_CHECK_FAILED';
+    sandbox_response: {
+        data: AadhaarData;
+    };
+}
+
+export interface PanVerifyPayload {
+    aadhaar_number: string;
+    pan_number: string;
+}
+
+export interface PanVerifyResponse {
+    message: string;
+    pan_link_status: string;
 }
 
 // ── QR ──
