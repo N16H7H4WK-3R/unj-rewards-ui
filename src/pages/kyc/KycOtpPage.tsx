@@ -137,8 +137,19 @@ export default function KycOtpPage() {
     const isPending = verifyOtp.isPending || isUpdatingProfile;
 
     return (
-        <div className="min-h-screen flex items-start justify-center px-4 pt-16 pb-6 bg-background">
-            <div className="w-full max-w-md">
+        <div className="pwa-standalone-page flex flex-col px-4 bg-bg">
+            <div className="w-full max-w-lg mx-auto flex-1 flex flex-col">
+                {/* Back button */}
+                <button
+                    onClick={() => navigate(ROUTES.KYC, { replace: true })}
+                    className="self-start mb-4 mt-2 w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    aria-label="Go back"
+                >
+                    <svg className="w-5 h-5 text-text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">

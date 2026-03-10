@@ -61,13 +61,13 @@ export default function AppShell() {
     return (
         <div className="flex flex-col h-full max-w-lg mx-auto bg-bg relative">
             {/* Main content */}
-            <main className="flex-1 overflow-y-auto pb-20">
+            <main className="flex-1 overflow-y-auto" style={{ paddingBottom: 'calc(5rem + var(--sab, 0px))' }}>
                 <Outlet />
             </main>
 
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 z-40" aria-label="Main navigation">
-                <div className="max-w-lg mx-auto bg-white border-t border-border shadow-card">
+                <div className="max-w-lg mx-auto bg-white border-t border-border shadow-card" style={{ paddingBottom: 'var(--sab, 0px)' }}>
                     <div className="flex items-center justify-around h-16 px-2 relative">
                         {navItems.map((item) => {
                             if (item.isFab) {

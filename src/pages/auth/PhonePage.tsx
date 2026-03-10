@@ -52,7 +52,7 @@ export default function PhonePage() {
     };
 
     return (
-        <div className="min-h-screen bg-bg flex flex-col">
+        <div className="pwa-standalone-page bg-bg flex flex-col">
             {/* Top section */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">

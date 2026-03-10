@@ -114,18 +114,17 @@ export default function OtpPage() {
     if (!username || !token) return null;
 
     return (
-        <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6">
-            <button
-                onClick={() => navigate(-1)}
-                className="self-start mb-8 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
-                aria-label="Go back"
-            >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-
+        <div className="pwa-standalone-page bg-bg flex flex-col items-center justify-center px-6">
             <div className="w-full max-w-sm">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mb-6 w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    aria-label="Go back"
+                >
+                    <svg className="w-5 h-5 text-text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
                 <h1 className="text-2xl font-bold text-text-primary mb-2">Verify OTP</h1>
                 <p className="text-sm text-text-muted mb-8">
                     Enter the {OTP_LENGTH}-digit code sent to <span className="font-semibold text-text-primary">+91 {username}</span>

@@ -84,8 +84,19 @@ export default function PanVerifyPage() {
     if (!aadhaarLast4) return null;
 
     return (
-        <div className="min-h-screen flex items-start justify-center px-4 pt-16 pb-6 bg-background">
-            <div className="w-full max-w-md">
+        <div className="pwa-standalone-page flex flex-col px-4 bg-bg">
+            <div className="w-full max-w-lg mx-auto flex-1 flex flex-col">
+                {/* Back button */}
+                <button
+                    onClick={() => navigate(ROUTES.HOME, { replace: true })}
+                    className="self-start mb-4 mt-2 w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    aria-label="Go back"
+                >
+                    <svg className="w-5 h-5 text-text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -128,11 +139,11 @@ export default function PanVerifyPage() {
                                         if (val.length === 8) trigger('aadhaar_first8');
                                     }}
                                     error={errors.aadhaar_first8?.message}
-                                    className="flex-[2]"
+                                    className="flex-[2] min-w-0"
                                     autoFocus
                                 />
-                                <div className="flex-1 mb-1">
-                                    <div className="h-12 px-4 bg-gray-100 border border-border rounded-xl text-lg text-text-muted font-bold tracking-wider flex items-center justify-center">
+                                <div className="flex-1 min-w-0 mb-1">
+                                    <div className="h-12 px-3 bg-gray-100 border border-border rounded-xl text-base text-text-muted font-bold tracking-wider flex items-center justify-center">
                                         {aadhaarLast4}
                                     </div>
                                 </div>

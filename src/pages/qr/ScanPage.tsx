@@ -185,10 +185,10 @@ export default function ScanPage() {
 
             await scanner.start(
                 { facingMode: 'environment' },
-                { 
-                    fps: 10, 
+                {
+                    fps: 10,
                     qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0 
+                    aspectRatio: 1.0
                 },
                 (decodedText) => {
                     if (hasScannedRef.current) return;
@@ -353,10 +353,10 @@ export default function ScanPage() {
 
             {(state === 'scanning' || state === 'initializing') && (
                 <div className="flex flex-col items-center">
-                    <div className="w-full aspect-square max-w-[320px] mx-auto rounded-3xl overflow-hidden bg-black mb-8 shadow-2xl relative border-4 border-white/20">
-                        <div 
-                            id={scannerContainerId} 
-                            className="!w-full !h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover" 
+                    <div className="w-full aspect-square max-w-[min(320px,85vw)] mx-auto rounded-3xl overflow-hidden bg-black mb-8 shadow-2xl relative border-4 border-white/20">
+                        <div
+                            id={scannerContainerId}
+                            className="!w-full !h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover"
                         />
                         {state === 'initializing' && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">

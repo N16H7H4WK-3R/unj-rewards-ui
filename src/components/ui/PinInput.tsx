@@ -76,6 +76,10 @@ const PinInput = forwardRef<PinInputHandle, PinInputProps>(
             onChange(pastedText);
         };
 
+        // Determine if this is a "many boxes" layout (e.g. PAN with 10 boxes)
+        // that needs tighter spacing on small screens
+        const isManyBoxes = boxCount > 6;
+
         return (
             <div className={`w-full ${className}`}>
                 {label && (
@@ -83,7 +87,7 @@ const PinInput = forwardRef<PinInputHandle, PinInputProps>(
                         {label}
                     </label>
                 )}
-                <div className="flex gap-2 items-center">
+                <div className={`flex items-center ${isManyBoxes ? 'gap-1' : 'gap-2'}`}>
                     {Array.from({ length: boxCount }).map((_, i) => (
                         <input
                             key={i}
@@ -101,13 +105,18 @@ const PinInput = forwardRef<PinInputHandle, PinInputProps>(
                             disabled={disabled}
                             autoFocus={autoFocus && i === 0}
                             className={`
-                                flex-1 h-12 text-center text-lg font-bold rounded-xl border
+                                min-w-0 flex-1 h-12 text-center font-bold rounded-xl border
                                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
                                 transition-all duration-200
+                                ${isManyBoxes ? 'text-base' : 'text-lg'}
                                 ${error ? 'border-error' : 'border-border'}
                                 ${disabled ? 'bg-gray-50 text-text-muted' : 'bg-white text-text-primary'}
                             `}
-                            style={{ minWidth: charsPerBox > 1 ? `${charsPerBox * 1.5}rem` : '2.5rem' }}
+                            style={{
+                                maxWidth: charsPerBox > 1
+                                    ? `${charsPerBox * 2.5}rem`
+                                    : undefined,
+                            }}
                         />
                     ))}
                 </div>
