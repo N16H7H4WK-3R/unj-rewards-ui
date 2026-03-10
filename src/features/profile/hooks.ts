@@ -1,8 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProfile, updateProfile } from './api';
+import { getProfile, updateProfile, requestEmailVerification, confirmEmailVerification } from './api';
 import { queryKeys } from '../../lib/constants';
 import { updateFullName } from '../../services/auth';
-import type { ProfileUpdatePayload } from '../../types/api';
+import type {
+    ProfileUpdatePayload,
+    EmailVerificationRequestPayload,
+    EmailVerificationConfirmPayload
+} from '../../types/api';
 
 export function useProfile() {
     return useQuery({
@@ -25,6 +29,23 @@ export function useUpdateProfile() {
         },
         onError: () => {
             // No toast per user request
+        },
+    });
+}
+
+export function useRequestEmailVerification() {
+    return useMutation({
+        mutationFn: (data: EmailVerificationRequestPayload) => requestEmailVerification(data),
+    });
+}
+
+export function useConfirmEmailVerification() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmailVerificationConfirmPayload) => confirmEmailVerification(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
         },
     });
 }

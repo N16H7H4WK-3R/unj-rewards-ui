@@ -3,7 +3,12 @@ import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useProfile, useUpdateProfile } from '../../features/profile/hooks';
+import {
+    useProfile,
+    useUpdateProfile,
+    useRequestEmailVerification,
+    useConfirmEmailVerification
+} from '../../features/profile/hooks';
 import { useLogout } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -35,7 +40,12 @@ export default function ProfilePage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [showEmailOtpInput, setShowEmailOtpInput] = useState(false);
+    const [emailOtp, setEmailOtp] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const requestEmailVerify = useRequestEmailVerification();
+    const confirmEmailVerify = useConfirmEmailVerification();
 
     useEffect(() => {
         if (selectedPhoto) {
@@ -148,9 +158,19 @@ export default function ProfilePage() {
                 <p className="text-sm font-semibold text-text-primary">{profile?.full_name || 'User'}</p>
                 <p className="text-xs text-text-muted">+91 {profile?.username}</p>
                 {profile?.role && (
-                    <span className="mt-1 px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                        {profile.role}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                            {profile.role}
+                        </span>
+                        {profile.email_verification_status && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-[10px] font-bold uppercase rounded-full">
+                                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                                </svg>
+                                Verified
+                            </span>
+                        )}
+                    </div>
                 )}
 
                 <div className="w-full max-w-xs mt-2">
@@ -243,20 +263,82 @@ export default function ProfilePage() {
                 </form>
             ) : (
                 <div className="space-y-4">
-                    {/* Profile fields display */}
                     {[
-                        { label: 'Email', value: profile?.email },
+                        { label: 'Email', value: profile?.email, isEmail: true },
                         { label: 'Date of Birth', value: profile?.dob },
                         { label: 'Gender', value: profile?.gender },
                         { label: 'District', value: profile?.district },
                         { label: 'State', value: profile?.state },
                         { label: 'Pincode', value: profile?.pincode },
                     ].map((field) => (
-                        <div key={field.label} className="flex items-center justify-between py-3 border-b border-border">
-                            <span className="text-sm text-text-muted">{field.label}</span>
-                            <span className="text-sm font-medium text-text-primary">
-                                {field.value || '—'}
-                            </span>
+                        <div key={field.label} className="border-b border-border">
+                            <div className="flex items-center justify-between py-3">
+                                <span className="text-sm text-text-muted">{field.label}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-text-primary">
+                                        {field.value || '—'}
+                                    </span>
+                                    {field.isEmail && field.value && !profile?.email_verification_status && !showEmailOtpInput && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    setApiError(null);
+                                                    await requestEmailVerify.mutateAsync({ email: field.value as string });
+                                                    setShowEmailOtpInput(true);
+                                                } catch (err) {
+                                                    setApiError(err instanceof ApiError ? err.message : 'Failed to send verification code');
+                                                }
+                                            }}
+                                            disabled={requestEmailVerify.isPending}
+                                            className="text-xs font-bold text-primary hover:underline"
+                                        >
+                                            {requestEmailVerify.isPending ? 'Sending...' : 'Verify'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {field.isEmail && showEmailOtpInput && (
+                                <div className="pb-4 pt-1 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Enter 6-digit OTP"
+                                            value={emailOtp}
+                                            onChange={(e) => setEmailOtp(e.target.value)}
+                                            maxLength={6}
+                                            className="flex-1 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            loading={confirmEmailVerify.isPending}
+                                            onClick={async () => {
+                                                try {
+                                                    setApiError(null);
+                                                    await confirmEmailVerify.mutateAsync({
+                                                        email: field.value as string,
+                                                        otp: emailOtp
+                                                    });
+                                                    setShowEmailOtpInput(false);
+                                                    setEmailOtp('');
+                                                    setSuccessMessage('Email verified successfully!');
+                                                } catch (err) {
+                                                    setApiError(err instanceof ApiError ? err.message : 'Invalid verification code');
+                                                }
+                                            }}
+                                        >
+                                            Confirm
+                                        </Button>
+                                        <button
+                                            onClick={() => { setShowEmailOtpInput(false); setEmailOtp(''); }}
+                                            className="text-xs text-text-muted hover:text-text-primary p-1"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-text-muted">An OTP has been sent to your email.</p>
+                                </div>
+                            )}
                         </div>
                     ))}
 

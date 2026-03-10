@@ -102,6 +102,19 @@ export interface ProfileUpdatePayload {
     device_type?: string;
 }
 
+export interface EmailVerificationRequestPayload {
+    email: string;
+}
+
+export interface EmailVerificationConfirmPayload {
+    email: string;
+    otp: string;
+}
+
+export interface MessageResponse {
+    message: string;
+}
+
 // ── Wallet ──
 
 export interface Wallet {
@@ -178,6 +191,7 @@ export interface Product {
     id: number;
     name: string;
     category: string;
+    default_points: number;
 }
 
 export interface QRValidateResponse {

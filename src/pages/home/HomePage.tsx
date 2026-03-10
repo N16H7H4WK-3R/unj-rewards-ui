@@ -96,6 +96,54 @@ export default function HomePage() {
                     </div>
                 </div>
             </Card>
+
+            {/* How to Scan Section */}
+            <div className="mt-8">
+                <h3 className="text-lg font-bold text-text-primary mb-6">How to Scan</h3>
+
+                {/* Steps */}
+                <div className="space-y-6 mb-8">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <span className="text-primary font-bold text-lg">1</span>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-text-primary">Find the QR Code</p>
+                            <p className="text-sm text-text-muted">Located on product packaging</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                                <div className="bg-primary rounded-[1px]"></div>
+                                <div className="bg-primary rounded-[1px]"></div>
+                                <div className="bg-primary rounded-[1px]"></div>
+                                <div className="border border-primary rounded-[1px]"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-text-primary">Scan the QR code</p>
+                            <p className="text-sm text-text-muted">Use the scanner below</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-text-primary">Earn Points Instantly</p>
+                            <p className="text-sm text-text-muted">Points credited immediately</p>
+                        </div>
+                    </div>
+                </div>
+                <p className="text-center text-xs text-text-muted px-8 leading-relaxed">
+                    Scan product QR codes to earn points instantly
+                </p>
+            </div>
         </div>
     );
 }

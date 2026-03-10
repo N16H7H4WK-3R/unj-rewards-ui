@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useVerifyOtp } from '../../features/auth/hooks';
+import { useVerifyOtp, useRequestOtp } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import StatusMessage from '../../components/ui/StatusMessage';
 import { ApiError } from '../../services/apiClient';
@@ -14,14 +14,26 @@ export default function OtpPage() {
     const { username, token } = (location.state as { username: string; token: string }) || {};
 
     const verifyOtp = useVerifyOtp();
+    const requestOtpMutation = useRequestOtp();
     const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
     const [apiError, setApiError] = useState<string | null>(null);
+    const [timeLeft, setTimeLeft] = useState(30);
+    const [isResending, setIsResending] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Redirect if no state
     useEffect(() => {
         if (!username || !token) navigate('/auth/phone', { replace: true });
     }, [username, token, navigate]);
+
+    // Timer logic
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
 
     const handleChange = (index: number, value: string) => {
         if (!/^\d*$/.test(value)) return;
@@ -78,6 +90,24 @@ export default function OtpPage() {
             } else {
                 setApiError('Verification failed. Please check your OTP.');
             }
+        }
+    };
+
+    const handleResend = async () => {
+        if (timeLeft > 0 || !username) return;
+        try {
+            setIsResending(true);
+            setApiError(null);
+            await requestOtpMutation.mutateAsync({ username });
+            setTimeLeft(30);
+        } catch (err) {
+            if (err instanceof ApiError) {
+                setApiError(err.message);
+            } else {
+                setApiError('Failed to resend OTP. Please try again.');
+            }
+        } finally {
+            setIsResending(false);
         }
     };
 
@@ -144,8 +174,12 @@ export default function OtpPage() {
 
                 <p className="mt-6 text-center text-sm text-text-muted">
                     Didn't receive OTP?{' '}
-                    <button className="text-primary font-medium hover:underline cursor-pointer">
-                        Resend
+                    <button
+                        onClick={handleResend}
+                        disabled={timeLeft > 0 || isResending}
+                        className={`font-medium transition-colors ${timeLeft > 0 || isResending ? 'text-text-muted cursor-not-allowed' : 'text-primary hover:underline cursor-pointer'}`}
+                    >
+                        {isResending ? 'Sending...' : (timeLeft > 0 ? `Resend in ${timeLeft}s` : 'Resend')}
                     </button>
                 </p>
             </div>

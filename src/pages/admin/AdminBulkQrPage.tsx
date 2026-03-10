@@ -8,7 +8,7 @@ import Input from '../../components/ui/Input';
 import Loader from '../../components/ui/Loader';
 import StatusMessage from '../../components/ui/StatusMessage';
 import { ApiError } from '../../services/apiClient';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const bulkQrSchema = z.object({
     product_id: z.string().min(1, 'Product is required'),
@@ -25,9 +25,21 @@ export default function AdminBulkQrPage() {
     const createQr = useAdminCreateQr();
     const [apiError, setApiError] = useState<string | null>(null);
 
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<BulkQrFormData>({
+    const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<BulkQrFormData>({
         resolver: zodResolver(bulkQrSchema),
     });
+
+    const selectedProductId = watch('product_id');
+
+    useEffect(() => {
+        if (selectedProductId && products) {
+            const product = products.content.find(p => p.id === Number(selectedProductId));
+            if (product) {
+                setValue('points', String(product.default_points));
+                setApiError(null);
+            }
+        }
+    }, [selectedProductId, products, setValue]);
 
     const onSubmit = async (data: BulkQrFormData) => {
         try {
