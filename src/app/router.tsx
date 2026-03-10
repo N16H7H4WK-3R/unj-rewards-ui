@@ -125,6 +125,19 @@ const router = createBrowserRouter([
                             },
                         ],
                     },
+                    // KYC pages (outside AppShell — no bottom nav)
+                    {
+                        path: ROUTES.KYC,
+                        element: <SuspenseWrap><KycPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.KYC_VERIFY_OTP,
+                        element: <SuspenseWrap><KycOtpPage /></SuspenseWrap>,
+                    },
+                    {
+                        path: ROUTES.KYC_VERIFY_PAN,
+                        element: <SuspenseWrap><PanVerifyPage /></SuspenseWrap>,
+                    },
                 ],
             },
             // Handle /:appCode/:qrCode pattern
