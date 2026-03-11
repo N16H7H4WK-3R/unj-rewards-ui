@@ -29,9 +29,9 @@
   --color-warning: #F59E0B;
 
   /* Shadows */
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.08);
-  --shadow-fab: 0 4px 20px rgba(242,74,42,0.4);
-  --shadow-soft: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 20px rgba(242, 74, 42, 0.4);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Safe area inset custom properties */
@@ -47,15 +47,20 @@ html {
   overscroll-behavior: none;
 }
 
-html, body, #root {
-  min-height: 100dvh;
-  min-height: 100vh; /* fallback for older browsers */
+html,
+body,
+#root {
+  min-height: 100vh;
+  /* fallback for older browsers */
   margin: 0;
   padding: 0;
 }
 
 @supports (min-height: 100dvh) {
-  html, body, #root {
+
+  html,
+  body,
+  #root {
     min-height: 100dvh;
   }
 }
@@ -99,8 +104,8 @@ body {
 
 /* Standalone PWA pages that render outside AppShell */
 .pwa-standalone-page {
-  min-height: 100dvh;
-  min-height: 100vh; /* fallback */
+  min-height: 100vh;
+  /* fallback */
   padding-top: calc(var(--sat) + 1.5rem);
   padding-bottom: calc(var(--sab) + 1.5rem);
   overflow-y: auto;

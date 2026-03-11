@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRequestAadhaarOtp } from '../../features/kyc/hooks';
@@ -22,13 +22,13 @@ export default function KycPage() {
     const requestOtp = useRequestAadhaarOtp();
     const [apiError, setApiError] = useState<string | null>(null);
 
-    const { handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm<KycFormData>({
+    const { handleSubmit, formState: { errors }, setValue, control, trigger } = useForm<KycFormData>({
         resolver: zodResolver(kycSchema),
         defaultValues: { aadhaar_number: '', pan_number: '' },
     });
 
-    const aadhaarValue = watch('aadhaar_number');
-    const panValue = watch('pan_number');
+    const aadhaarValue = useWatch({ control, name: 'aadhaar_number' });
+    const panValue = useWatch({ control, name: 'pan_number' });
 
     const onSubmit = async (data: KycFormData) => {
         try {

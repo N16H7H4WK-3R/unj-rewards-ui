@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useHome } from '../../features/home/hooks';
@@ -42,13 +42,13 @@ export default function PanVerifyPage() {
         }
     }, [isLoading, aadhaarLast4, navigate]);
 
-    const { handleSubmit, formState: { errors }, setValue, watch, trigger } = useForm<PanVerifyFormData>({
+    const { handleSubmit, formState: { errors }, setValue, control, trigger } = useForm<PanVerifyFormData>({
         resolver: zodResolver(panVerifySchema),
         defaultValues: { aadhaar_first8: '', pan_number: '' },
     });
 
-    const aadhaarFirst8Value = watch('aadhaar_first8');
-    const panValue = watch('pan_number');
+    const aadhaarFirst8Value = useWatch({ control, name: 'aadhaar_first8' });
+    const panValue = useWatch({ control, name: 'pan_number' });
     const isSamePan = !!(existingPan && panValue === existingPan);
 
     const onSubmit = async (data: PanVerifyFormData) => {

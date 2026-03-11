@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAdminCreateQr, useProducts } from '../../features/qr/hooks';
@@ -25,11 +25,11 @@ export default function AdminBulkQrPage() {
     const createQr = useAdminCreateQr();
     const [apiError, setApiError] = useState<string | null>(null);
 
-    const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<BulkQrFormData>({
+    const { register, handleSubmit, control, setValue, formState: { errors }, reset } = useForm<BulkQrFormData>({
         resolver: zodResolver(bulkQrSchema),
     });
 
-    const selectedProductId = watch('product_id');
+    const selectedProductId = useWatch({ control, name: 'product_id' });
 
     useEffect(() => {
         if (selectedProductId && products) {
