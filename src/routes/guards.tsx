@@ -86,8 +86,9 @@ export function RequireKYC() {
             if (isPanVerified) {
                 return <Navigate to={ROUTES.HOME} replace />;
             }
-            // If only Aadhaar is verified, redirect to PAN if they hit Aadhaar routes
-            return <Navigate to={ROUTES.KYC_VERIFY_PAN} replace />;
+            // If only Aadhaar is verified, redirect to PROFILE (as per user requirement)
+            // instead of automatically forcing PAN verification.
+            return <Navigate to={ROUTES.PROFILE} replace />;
         }
     }
 

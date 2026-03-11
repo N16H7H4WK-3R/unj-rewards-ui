@@ -3,13 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { useVerifyAadhaarOtp } from '../../features/kyc/hooks';
 import { updateProfile } from '../../features/profile/api';
 import Button from '../../components/ui/Button';
 import PinInput from '../../components/ui/PinInput';
 import StatusMessage from '../../components/ui/StatusMessage';
 import { ApiError } from '../../services/apiClient';
-import { ROUTES } from '../../lib/constants';
+import { ROUTES, queryKeys } from '../../lib/constants';
 
 const otpSchema = z.object({
     otp: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit OTP'),
@@ -47,6 +48,7 @@ function mapGender(g: string): string {
 export default function KycOtpPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
     const state = location.state as LocationState | null;
 
     const verifyOtp = useVerifyAadhaarOtp();
@@ -110,6 +112,7 @@ export default function KycOtpPage() {
             try {
                 setIsUpdatingProfile(true);
                 await updateProfile(profilePayload as Parameters<typeof updateProfile>[0]);
+                await queryClient.invalidateQueries({queryKey: queryKeys.profile()});
             } catch {
                 // Profile update failed — still navigate to profile for manual retry
             } finally {
@@ -117,7 +120,11 @@ export default function KycOtpPage() {
             }
 
             // Small delay so user sees the success message
-            setTimeout(() => {
+            setTimeout(async () => {
+                // Invalidate KYC and Home queries here, just before navigation,
+                // to prevent the route guard from triggering a redirect to PAN page prematurely.
+                await queryClient.invalidateQueries({ queryKey: queryKeys.kycStatus() });
+                await queryClient.invalidateQueries({ queryKey: queryKeys.home() });
                 navigate(ROUTES.PROFILE, { state: { fromKyc: true }, replace: true });
             }, 1500);
 
