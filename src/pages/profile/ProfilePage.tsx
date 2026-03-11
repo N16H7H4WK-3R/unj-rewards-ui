@@ -9,6 +9,7 @@ import {
     useRequestEmailVerification,
     useConfirmEmailVerification
 } from '../../features/profile/hooks';
+import { useHome } from '../../features/home/hooks';
 import { useLogout } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -29,13 +30,18 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+// Fields that are locked when KYC (Aadhaar) is verified
+const KYC_LOCKED_FIELDS = ['full_name', 'dob', 'gender', 'district', 'state', 'pincode'] as const;
+
 export default function ProfilePage() {
     const location = useLocation();
     const fromRoleSelect = location.state?.fromRoleSelect;
+    const fromKyc = location.state?.fromKyc;
     const { data: profile, isLoading } = useProfile();
+    const { data: homeData } = useHome();
     const updateProfile = useUpdateProfile();
     const logoutMutation = useLogout();
-    const [isEditing, setIsEditing] = useState(!!fromRoleSelect);
+    const [isEditing, setIsEditing] = useState(!!fromRoleSelect || !!fromKyc);
     const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -46,6 +52,12 @@ export default function ProfilePage() {
 
     const requestEmailVerify = useRequestEmailVerification();
     const confirmEmailVerify = useConfirmEmailVerification();
+
+    // Check if KYC is verified (Aadhaar entity exists with VERIFIED status)
+    const isKycVerified = !!(
+        homeData?.kyc?.kyc_status &&
+        homeData.kyc.kyc_status.some((e) => e.entity === 'AADHAAR' && e.status === 'VERIFIED')
+    );
 
     useEffect(() => {
         if (selectedPhoto) {
@@ -101,14 +113,21 @@ export default function ProfilePage() {
 
     if (isLoading) return <Loader className="min-h-screen" />;
 
+    const isFieldLocked = (fieldName: string) =>
+        KYC_LOCKED_FIELDS.includes(fieldName as typeof KYC_LOCKED_FIELDS[number]);
+
+    const isPhotoLocked = isKycVerified;
+
+    const showFromLabel = fromRoleSelect || fromKyc;
+
     return (
         <div className="px-4 pt-4 pb-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl font-bold text-text-primary">
-                    {fromRoleSelect ? 'Complete Profile' : 'Profile'}
+                    {fromKyc ? 'Complete Profile' : fromRoleSelect ? 'Complete Profile' : 'Profile'}
                 </h1>
-                {!isEditing && !fromRoleSelect && (
+                {!isEditing && !showFromLabel && (
                     <button
                         onClick={() => setIsEditing(true)}
                         className="text-sm font-semibold text-primary hover:underline cursor-pointer"
@@ -122,8 +141,8 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center mb-6">
                 <div className="relative mb-3 group">
                     <div
-                        className={`w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm ${isEditing ? 'cursor-pointer hover:border-primary transition-colors' : ''}`}
-                        onClick={() => isEditing && fileInputRef.current?.click()}
+                        className={`w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm ${isEditing && !isPhotoLocked ? 'cursor-pointer hover:border-primary transition-colors' : ''}`}
+                        onClick={() => isEditing && !isPhotoLocked && fileInputRef.current?.click()}
                     >
                         {previewUrl ? (
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -135,13 +154,20 @@ export default function ProfilePage() {
                             </svg>
                         )}
                     </div>
-                    {isEditing && (
+                    {isEditing && !isPhotoLocked && (
                         <div
                             className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full cursor-pointer shadow-md hover:scale-110 transition-transform"
                             onClick={() => fileInputRef.current?.click()}
                         >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 16a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3zM12 15a3 3 0 100-6 3 3 0 000 6z" />
+                            </svg>
+                        </div>
+                    )}
+                    {isEditing && isPhotoLocked && (
+                        <div className="absolute bottom-0 right-0 bg-gray-400 text-white p-1.5 rounded-full shadow-md">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                             </svg>
                         </div>
                     )}
@@ -190,12 +216,24 @@ export default function ProfilePage() {
 
             {isEditing ? (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <Input
-                        label="Full Name"
-                        placeholder="Enter your full name"
-                        error={errors.full_name?.message}
-                        {...register('full_name', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
-                    />
+                    <div className="relative">
+                        <Input
+                            label="Full Name"
+                            placeholder="Enter your full name"
+                            error={errors.full_name?.message}
+                            disabled={isFieldLocked('full_name')}
+                            className={isFieldLocked('full_name') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('full_name', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('full_name') && (
+                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
+                    </div>
                     <Input
                         label="Email"
                         type="email"
@@ -203,17 +241,30 @@ export default function ProfilePage() {
                         error={errors.email?.message}
                         {...register('email', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                     />
-                    <Input
-                        label="Date of Birth"
-                        type="date"
-                        error={errors.dob?.message}
-                        {...register('dob', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
-                    />
+                    <div className="relative">
+                        <Input
+                            label="Date of Birth"
+                            type="date"
+                            error={errors.dob?.message}
+                            disabled={isFieldLocked('dob')}
+                            className={isFieldLocked('dob') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('dob', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('dob') && (
+                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
+                    </div>
 
-                    <div>
+                    <div className="relative">
                         <label className="block text-sm font-medium text-text-primary mb-1.5">Gender</label>
                         <select
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-white text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            className={`w-full px-4 py-3 rounded-xl border border-border bg-white text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ${isFieldLocked('gender') ? 'bg-gray-50! text-text-muted! cursor-not-allowed' : ''}`}
+                            disabled={isFieldLocked('gender')}
                             {...register('gender', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         >
                             <option value="">Select gender</option>
@@ -221,34 +272,87 @@ export default function ProfilePage() {
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
+                        {isFieldLocked('gender') && (
+                            <span className="absolute right-8 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
                     </div>
 
-                    <Input
-                        label="District"
-                        placeholder="Enter district"
-                        error={errors.district?.message}
-                        {...register('district', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
-                    />
-                    <Input
-                        label="State"
-                        placeholder="Enter state"
-                        error={errors.state?.message}
-                        {...register('state', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
-                    />
-                    <Input
-                        label="Pincode"
-                        placeholder="6-digit pincode"
-                        maxLength={6}
-                        inputMode="numeric"
-                        error={errors.pincode?.message}
-                        {...register('pincode', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
-                    />
+                    <div className="relative">
+                        <Input
+                            label="District"
+                            placeholder="Enter district"
+                            error={errors.district?.message}
+                            disabled={isFieldLocked('district')}
+                            className={isFieldLocked('district') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('district', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('district') && (
+                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
+                    </div>
+                    <div className="relative">
+                        <Input
+                            label="State"
+                            placeholder="Enter state"
+                            error={errors.state?.message}
+                            disabled={isFieldLocked('state')}
+                            className={isFieldLocked('state') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('state', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('state') && (
+                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
+                    </div>
+                    <div className="relative">
+                        <Input
+                            label="Pincode"
+                            placeholder="6-digit pincode"
+                            maxLength={6}
+                            inputMode="numeric"
+                            error={errors.pincode?.message}
+                            disabled={isFieldLocked('pincode')}
+                            className={isFieldLocked('pincode') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('pincode', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('pincode') && (
+                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Aadhaar
+                            </span>
+                        )}
+                    </div>
+
+                    {isKycVerified && (
+                        <p className="text-xs text-text-muted flex items-center gap-1.5 mt-1">
+                            <svg className="w-3.5 h-3.5 text-success" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                            Fields marked with a lock icon are verified via Aadhaar and cannot be edited
+                        </p>
+                    )}
 
                     <div className="pt-2 space-y-3">
                         <Button type="submit" fullWidth size="lg" loading={updateProfile.isPending}>
                             Save Profile
                         </Button>
-                        {!fromRoleSelect && (
+                        {!showFromLabel && (
                             <Button
                                 type="button"
                                 variant="ghost"

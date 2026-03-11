@@ -121,7 +121,8 @@ export default function ScanPage() {
             const { details, resolvedPublicCode } = normalizeProcessResponse(response);
 
             if (!details || !details.product || !details.product.name || !details.product.category || !resolvedPublicCode) {
-                throw new Error('Unable to read QR details. Please scan again.');
+                setErrorState('Unable to read QR details. Please scan again.');
+                return;
             }
 
             if (!isMountedRef.current) return;
@@ -178,17 +179,21 @@ export default function ScanPage() {
         try {
             // Check if element exists before starting
             const element = document.getElementById(scannerContainerId);
-            if (!element) throw new Error('Scanner container not found');
+            if (!element) {
+                setErrorState('Scanner container not found');
+                isStartingRef.current = false;
+                return;
+            }
 
             const scanner = new Html5Qrcode(scannerContainerId);
             scannerRef.current = scanner;
 
             await scanner.start(
                 { facingMode: 'environment' },
-                { 
-                    fps: 10, 
+                {
+                    fps: 10,
                     qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0 
+                    aspectRatio: 1.0
                 },
                 (decodedText) => {
                     if (hasScannedRef.current) return;
@@ -353,10 +358,10 @@ export default function ScanPage() {
 
             {(state === 'scanning' || state === 'initializing') && (
                 <div className="flex flex-col items-center">
-                    <div className="w-full aspect-square max-w-[320px] mx-auto rounded-3xl overflow-hidden bg-black mb-8 shadow-2xl relative border-4 border-white/20">
-                        <div 
-                            id={scannerContainerId} 
-                            className="!w-full !h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover" 
+                    <div className="w-full aspect-square max-w-70 mx-auto rounded-3xl overflow-hidden bg-black mb-8 shadow-2xl relative border-4 border-white/20">
+                        <div
+                            id={scannerContainerId}
+                            className="w-full! h-full! [&_video]:w-full! [&_video]:h-full! [&_video]:object-cover!"
                         />
                         {state === 'initializing' && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -461,7 +466,7 @@ export default function ScanPage() {
                         </svg>
                     </div>
                     <h2 className="text-3xl font-black text-text-primary mb-2 text-center">Boom! Rewarded</h2>
-                    <p className="text-text-muted mb-10 text-center max-w-[250px]">Your points have been added to your wallet successfully</p>
+                    <p className="text-text-muted mb-10 text-center max-w-62.5">Your points have been added to your wallet successfully</p>
 
                     <Card variant="default" padding="lg" className="w-full mb-10 bg-success/5 border-success/20">
                         <div className="flex items-center justify-between">
@@ -502,7 +507,7 @@ export default function ScanPage() {
                         </svg>
                     </div>
                     <h2 className="text-2xl font-bold text-text-primary mb-3">Scan Failed</h2>
-                    <p className="text-text-muted mb-10 max-w-[280px]">{errorMsg || 'Something went wrong while processing the QR code.'}</p>
+                    <p className="text-text-muted mb-10 max-w-70">{errorMsg || 'Something went wrong while processing the QR code.'}</p>
 
                     <div className="w-full space-y-4">
                         <Button

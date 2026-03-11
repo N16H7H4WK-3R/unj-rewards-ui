@@ -2,7 +2,7 @@ import { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import AppShell from '../layouts/AppShell';
 import AdminLayout from '../layouts/AdminLayout';
-import { RequireAuth, RequireRole, RedirectIfAuthenticated, RequireAdmin, RedirectIfAdminAuthenticated } from '../routes/guards';
+import { RequireAuth, RequireRole, RedirectIfAuthenticated, RequireAdmin, RedirectIfAdminAuthenticated, RequireKYC } from '../routes/guards';
 import Loader from '../components/ui/Loader';
 import { ROUTES } from '../lib/constants';
 
@@ -27,6 +27,9 @@ const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'));
 const AdminCreateUserPage = lazy(() => import('../pages/admin/AdminCreateUserPage'));
 const AdminDebitPage = lazy(() => import('../pages/admin/AdminDebitPage'));
 const OfflinePage = lazy(() => import('../pages/OfflinePage'));
+const KycPage = lazy(() => import('../pages/kyc/KycPage'));
+const KycOtpPage = lazy(() => import('../pages/kyc/KycOtpPage'));
+const PanVerifyPage = lazy(() => import('../pages/kyc/PanVerifyPage'));
 
 const SuspenseWrap = ({ children }: { children: React.ReactNode }) => (
     <Suspense fallback={<Loader className="min-h-screen" />}>
@@ -80,27 +83,45 @@ const router = createBrowserRouter([
                 element: <RequireRole />,
                 children: [
                     {
-                        element: <AppShell />,
+                        element: <RequireKYC />,
                         children: [
                             {
-                                path: ROUTES.HOME,
-                                element: <SuspenseWrap><HomePage /></SuspenseWrap>,
+                                element: <AppShell />,
+                                children: [
+                                    {
+                                        path: ROUTES.HOME,
+                                        element: <SuspenseWrap><HomePage /></SuspenseWrap>,
+                                    },
+                                    {
+                                        path: ROUTES.WALLET,
+                                        element: <SuspenseWrap><WalletPage /></SuspenseWrap>,
+                                    },
+                                    {
+                                        path: ROUTES.TRANSACTIONS,
+                                        element: <SuspenseWrap><TransactionHistoryPage /></SuspenseWrap>,
+                                    },
+                                    {
+                                        path: ROUTES.SCAN_QR,
+                                        element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
+                                    },
+                                    {
+                                        path: ROUTES.PROFILE,
+                                        element: <SuspenseWrap><ProfilePage /></SuspenseWrap>,
+                                    },
+                                ],
+                            },
+                            // KYC pages
+                            {
+                                path: ROUTES.KYC,
+                                element: <SuspenseWrap><KycPage /></SuspenseWrap>,
                             },
                             {
-                                path: ROUTES.WALLET,
-                                element: <SuspenseWrap><WalletPage /></SuspenseWrap>,
+                                path: ROUTES.KYC_VERIFY_OTP,
+                                element: <SuspenseWrap><KycOtpPage /></SuspenseWrap>,
                             },
                             {
-                                path: ROUTES.TRANSACTIONS,
-                                element: <SuspenseWrap><TransactionHistoryPage /></SuspenseWrap>,
-                            },
-                            {
-                                path: ROUTES.SCAN_QR,
-                                element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
-                            },
-                            {
-                                path: ROUTES.PROFILE,
-                                element: <SuspenseWrap><ProfilePage /></SuspenseWrap>,
+                                path: ROUTES.KYC_VERIFY_PAN,
+                                element: <SuspenseWrap><PanVerifyPage /></SuspenseWrap>,
                             },
                         ],
                     },

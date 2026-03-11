@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHome } from '../../features/home/hooks';
 import Card from '../../components/ui/Card';
@@ -11,6 +12,13 @@ export default function HomePage() {
     const navigate = useNavigate();
     const { data, isLoading, error } = useHome();
 
+    // Derive PAN status from kyc_status array
+    const panStatus = useMemo(() => {
+        if (!data) return null;
+        const panEntity = data.kyc.kyc_status.find((e) => e.entity === 'PAN');
+        return panEntity?.status ?? null;
+    }, [data]);
+
     if (isLoading) return <Loader className="min-h-screen" />;
 
     if (error || !data) {
@@ -20,6 +28,9 @@ export default function HomePage() {
             </div>
         );
     }
+
+    // Don't render if about to redirect
+    if (data.kyc.kyc_status.length === 0) return <Loader className="min-h-screen" />;
 
     const { user, wallet } = data;
 
@@ -44,13 +55,6 @@ export default function HomePage() {
                         </p>
                     </div>
                 </div>
-
-                {/* Bell icon */}
-                {/*<button className="w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer" aria-label="Notifications">*/}
-                {/*    <svg className="w-5 h-5 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">*/}
-                {/*        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />*/}
-                {/*    </svg>*/}
-                {/*</button>*/}
             </div>
 
             {/* Wallet Card */}
@@ -96,6 +100,66 @@ export default function HomePage() {
                     </div>
                 </div>
             </Card>
+
+            {/* Profile Verified Status */}
+            {user.is_profile_complete &&
+                data.kyc.kyc_status.some(e => e.entity === 'AADHAAR' && e.status === 'VERIFIED') &&
+                data.kyc.kyc_status.some(e => e.entity === 'PAN' && e.status === 'VERIFIED') && (
+                    <Card padding="md" className="mb-6 border border-success/20 bg-success/5 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                                <svg className="w-6 h-6 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold text-text-primary">Profile Completely Verified</p>
+                                <p className="text-xs text-text-muted">Your identity and profile details are fully verified.</p>
+                            </div>
+                        </div>
+                    </Card>
+                )}
+
+            {/* PAN Status Card — between Wallet and How to Scan */}
+            {panStatus !== 'VERIFIED' && panStatus !== 'REJECTED' && (
+                <Card padding="md" className="mb-6 border border-primary/20 bg-primary/5">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-text-primary">Verify PAN Card</p>
+                            <p className="text-xs text-text-muted">Your PAN verification is pending</p>
+                        </div>
+                    </div>
+                    <Button
+                        variant="primary"
+                        size="md"
+                        fullWidth
+                        onClick={() => navigate(ROUTES.KYC_VERIFY_PAN)}
+                    >
+                        Verify PAN
+                    </Button>
+                </Card>
+            )}
+
+            {panStatus === 'REJECTED' && (
+                <Card padding="md" className="mb-6 border border-error/20 bg-error/5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                            <svg className="w-5 h-5 text-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-text-primary">Your PAN cannot be verified</p>
+                            <p className="text-xs text-text-muted">Please contact the application admin for PAN verification assistance.</p>
+                        </div>
+                    </div>
+                </Card>
+            )}
 
             {/* How to Scan Section */}
             <div className="mt-8">

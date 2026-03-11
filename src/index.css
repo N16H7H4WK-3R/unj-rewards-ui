@@ -29,16 +29,40 @@
   --color-warning: #F59E0B;
 
   /* Shadows */
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.08);
-  --shadow-fab: 0 4px 20px rgba(242,74,42,0.4);
-  --shadow-soft: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 20px rgba(242, 74, 42, 0.4);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Safe area inset custom properties */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 /* Base styles */
-html, body, #root {
-  height: 100%;
+html {
+  overscroll-behavior: none;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+  /* fallback for older browsers */
   margin: 0;
   padding: 0;
+}
+
+@supports (min-height: 100dvh) {
+
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
 }
 
 body {
@@ -47,6 +71,10 @@ body {
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Safe area: push content below status bar / notch */
+  padding-top: var(--sat);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
 }
 
 /* Scrollbar */
@@ -72,4 +100,20 @@ body {
 /* Tap highlight on mobile */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Standalone PWA pages that render outside AppShell */
+.pwa-standalone-page {
+  min-height: 100vh;
+  /* fallback */
+  padding-top: calc(var(--sat) + 1.5rem);
+  padding-bottom: calc(var(--sab) + 1.5rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (min-height: 100dvh) {
+  .pwa-standalone-page {
+    min-height: 100dvh;
+  }
 }

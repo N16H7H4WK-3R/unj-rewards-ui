@@ -20,6 +20,9 @@ export const ROUTES = {
     ADMIN_CREATE_USER: '/admin/users/create',
     ADMIN_DEBIT: '/admin/debit',
     OFFLINE: '/offline',
+    KYC: '/kyc',
+    KYC_VERIFY_OTP: '/kyc/verify-otp',
+    KYC_VERIFY_PAN: '/kyc/verify-pan',
 } as const;
 
 export const queryKeys = {
