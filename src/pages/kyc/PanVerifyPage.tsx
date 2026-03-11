@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,13 +34,6 @@ export default function PanVerifyPage() {
     }, [homeData]);
 
     const existingPan = homeData?.kyc?.pan_number ?? null;
-
-    // Redirect to home if no aadhaar data available
-    useEffect(() => {
-        if (!isLoading && !aadhaarLast4) {
-            navigate(ROUTES.HOME, { replace: true });
-        }
-    }, [isLoading, aadhaarLast4, navigate]);
 
     const { handleSubmit, formState: { errors }, setValue, control, trigger } = useForm<PanVerifyFormData>({
         resolver: zodResolver(panVerifySchema),

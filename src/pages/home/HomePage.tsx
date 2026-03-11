@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHome } from '../../features/home/hooks';
 import Card from '../../components/ui/Card';
@@ -11,13 +11,6 @@ import { config } from '../../lib/config';
 export default function HomePage() {
     const navigate = useNavigate();
     const { data, isLoading, error } = useHome();
-
-    // Redirect to KYC page if KYC status is empty (no verifications done)
-    useEffect(() => {
-        if (data && data.kyc.kyc_status.length === 0) {
-            navigate(ROUTES.KYC, { replace: true });
-        }
-    }, [data, navigate]);
 
     // Derive PAN status from kyc_status array
     const panStatus = useMemo(() => {
