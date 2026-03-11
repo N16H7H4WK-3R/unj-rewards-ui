@@ -9,6 +9,7 @@ import PinInput from '../../components/ui/PinInput';
 import StatusMessage from '../../components/ui/StatusMessage';
 import { ApiError } from '../../services/apiClient';
 import { ROUTES } from '../../lib/constants';
+import {useLogout} from "../../features/auth/hooks.ts";
 
 const kycSchema = z.object({
     aadhaar_number: z.string().regex(/^\d{12}$/, 'Enter a valid 12-digit Aadhaar number'),
@@ -21,6 +22,7 @@ export default function KycPage() {
     const navigate = useNavigate();
     const requestOtp = useRequestAadhaarOtp();
     const [apiError, setApiError] = useState<string | null>(null);
+    const logoutMutation = useLogout();
 
     const { handleSubmit, formState: { errors }, setValue, control, trigger } = useForm<KycFormData>({
         resolver: zodResolver(kycSchema),
@@ -54,12 +56,18 @@ export default function KycPage() {
         }
     };
 
+    const handleBackLogout = async () => {
+        await logoutMutation.mutateAsync();
+        navigate(ROUTES.AUTH_PHONE)
+    };
+
     return (
         <div className="pwa-standalone-page flex flex-col px-4 bg-bg">
             <div className="w-full max-w-lg mx-auto flex-1 flex flex-col">
                 {/* Back button */}
                 <button
-                    onClick={() => navigate(ROUTES.HOME)}
+                    // onClick={() => navigate(ROUTES.AUTH_PHONE)}
+                    onClick={handleBackLogout}
                     className="self-start mb-4 mt-2 w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                     aria-label="Go back"
                 >

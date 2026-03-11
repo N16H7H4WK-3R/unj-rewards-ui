@@ -38,6 +38,7 @@ export interface LoginResponse {
     user_role: string | null;
     username: string;
     full_name: string;
+    kyc_status: KYCEntity[];
 }
 
 export interface AdminLoginResponse {
