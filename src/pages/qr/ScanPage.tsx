@@ -132,7 +132,24 @@ export default function ScanPage() {
             redeemTriggeredRef.current = false;
             setState('preview');
         } catch (err: unknown) {
-            setErrorState(getErrorMessage(err, 'Invalid or expired QR code'));
+            if (err instanceof ApiError && err.status === 404) {
+                setErrorState('Unknow QR, please scan a valid QR');
+                return;
+            }
+
+            const apiMsg = getErrorMessage(err, '');
+            if (apiMsg) {
+                const lowerMsg = apiMsg.toLowerCase();
+                if (lowerMsg.includes('not found') || lowerMsg.includes('unknown')) {
+                    setErrorState('Unknow QR, please scan a valid QR');
+                } else if (lowerMsg.includes('invalid') || apiMsg === 'Invalid or expired QR code') {
+                    setErrorState('The QR code is not valid, please scan a valid QR');
+                } else {
+                    setErrorState(apiMsg);
+                }
+            } else {
+                setErrorState('The QR code is not valid, please scan a valid QR');
+            }
         }
     }, [processQr, setErrorState]);
 
@@ -199,7 +216,12 @@ export default function ScanPage() {
                     if (hasScannedRef.current) return;
 
                     const validCode = validateQrFormat(decodedText);
-                    if (!validCode) return;
+                    if (!validCode) {
+                        hasScannedRef.current = true;
+                        void cleanupScanner();
+                        setErrorState('The QR code is not valid, please scan a valid QR');
+                        return;
+                    }
 
                     hasScannedRef.current = true;
                     void cleanupScanner();
