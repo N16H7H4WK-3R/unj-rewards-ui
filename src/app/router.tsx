@@ -105,6 +105,10 @@ const router = createBrowserRouter([
                                         element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
                                     },
                                     {
+                                        path: '/:appCodeAlgoVersion/:qrCode',
+                                        element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
+                                    },
+                                    {
                                         path: ROUTES.PROFILE,
                                         element: <SuspenseWrap><ProfilePage /></SuspenseWrap>,
                                     },
@@ -126,11 +130,6 @@ const router = createBrowserRouter([
                         ],
                     },
                 ],
-            },
-            // Handle /:appCode/:qrCode pattern
-            {
-                path: '/:appCodeAlgoVersion/:qrCode',
-                element: <SuspenseWrap><ScanPage /></SuspenseWrap>,
             },
         ],
     },

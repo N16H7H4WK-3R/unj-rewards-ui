@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,6 +20,7 @@ type KycFormData = z.infer<typeof kycSchema>;
 
 export default function KycPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const requestOtp = useRequestAadhaarOtp();
     const [apiError, setApiError] = useState<string | null>(null);
     const logoutMutation = useLogout();
@@ -41,6 +42,7 @@ export default function KycPage() {
                     reference_id: result.reference_id,
                     aadhaar_number: result.aadhaar_number,
                     pan_number: result.pan_number,
+                    from: location.state?.from,
                 },
             });
         } catch (err) {

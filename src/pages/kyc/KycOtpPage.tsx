@@ -22,6 +22,7 @@ interface LocationState {
     reference_id: string;
     aadhaar_number: string;
     pan_number: string;
+    from?: { pathname: string; search: string };
 }
 
 function base64ToFile(dataUri: string, filename: string): File {
@@ -125,7 +126,13 @@ export default function KycOtpPage() {
                 // to prevent the route guard from triggering a redirect to PAN page prematurely.
                 await queryClient.invalidateQueries({ queryKey: queryKeys.kycStatus() });
                 await queryClient.invalidateQueries({ queryKey: queryKeys.home() });
-                navigate(ROUTES.PROFILE, { state: { fromKyc: true }, replace: true });
+                const origin = state?.from?.pathname;
+                const isQrOrigin = origin && origin.split('/').length === 3; // Simple check for /:appCode/:qrCode
+                if (isQrOrigin) {
+                    navigate(origin + (state?.from?.search || ""), { replace: true });
+                } else {
+                    navigate(ROUTES.PROFILE, { state: { fromKyc: true }, replace: true });
+                }
             }, 1500);
 
         } catch (err) {

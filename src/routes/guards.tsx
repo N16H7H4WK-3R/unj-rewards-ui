@@ -81,6 +81,12 @@ export function RequireKYC() {
     //    - Restrict access: The Aadhaar KYC route (aadhaar req otp and verify otp) must not be accessible.
     if (isAadhaarVerified) {
         if (location.pathname === ROUTES.KYC || location.pathname === ROUTES.KYC_VERIFY_OTP) {
+            // If we have a 'from' target in state, it means the page will handle its own redirect flow
+            // after showing a success message. We should not interfere.
+            if ((location.state as any)?.from) {
+                return <Outlet />;
+            }
+
             // If already Aadhaar verified, and NOT PAN verified, they can go to PAN link.
             // If they are BOTH verified, they shouldn't even be in the PAN route.
             if (isPanVerified) {
@@ -97,6 +103,10 @@ export function RequireKYC() {
     //    - Restrict access: All KYC-related routes (aadhaar req otp, verify otp, and PAN link) must be inaccessible.
     if (isAadhaarVerified && isPanVerified) {
         if (isKycRoute) {
+            // If we have a 'from' target in state, it means the page will handle its own redirect flow.
+            if ((location.state as any)?.from) {
+                return <Outlet />;
+            }
             return <Navigate to={ROUTES.HOME} replace />;
         }
     }
@@ -105,7 +115,7 @@ export function RequireKYC() {
     //    - Restrict route access to login and request KYC routes only (aadhaar req otp and verify otp).
     if (!isAadhaarVerified) {
         if (![ROUTES.KYC, ROUTES.KYC_VERIFY_OTP].includes(location.pathname as any)) {
-            return <Navigate to={ROUTES.KYC} replace />;
+            return <Navigate to={ROUTES.KYC} state={{ from: location }} replace />;
         }
     }
 

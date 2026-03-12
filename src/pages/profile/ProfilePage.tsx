@@ -114,9 +114,9 @@ export default function ProfilePage() {
     if (isLoading) return <Loader className="min-h-screen" />;
 
     const isFieldLocked = (fieldName: string) =>
-        KYC_LOCKED_FIELDS.includes(fieldName as typeof KYC_LOCKED_FIELDS[number]);
+        isKycVerified && KYC_LOCKED_FIELDS.includes(fieldName as typeof KYC_LOCKED_FIELDS[number]);
 
-    const isPhotoLocked = isKycVerified;
+    const isPhotoLocked = false;
 
     const showFromLabel = fromRoleSelect || fromKyc;
 
