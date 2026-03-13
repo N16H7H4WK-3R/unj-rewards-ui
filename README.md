@@ -68,8 +68,7 @@ src/
 | Priority | Method | Notes |
 |---|---|---|
 | Primary | In-memory variables | Fastest, most secure, cleared on tab close |
-| Fallback | `sessionStorage` | Survives page refresh within same tab |
-| NOT used | `localStorage` | Avoided — vulnerable to XSS exfiltration |
+| Fallback | `localStorage` | Persistent login — survives page refresh and tab close |
 
 ## Security
 

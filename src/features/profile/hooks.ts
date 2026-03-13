@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProfile, updateProfile, requestEmailVerification, confirmEmailVerification } from './api';
 import { queryKeys } from '../../lib/constants';
-import { updateFullName } from '../../services/auth';
 import type {
     ProfileUpdatePayload,
     EmailVerificationRequestPayload,
@@ -22,10 +21,9 @@ export function useUpdateProfile() {
 
     return useMutation({
         mutationFn: (data: ProfileUpdatePayload) => updateProfile(data),
-        onSuccess: (data) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
             queryClient.invalidateQueries({ queryKey: queryKeys.home() });
-            if (data.full_name) updateFullName(data.full_name);
         },
         onError: () => {
             // No toast per user request

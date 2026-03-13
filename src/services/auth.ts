@@ -5,8 +5,6 @@ const TOKEN_KEYS = {
     REFRESH: 'refresh_token',
     USER_ROLE: 'user_role',
     USERNAME: 'username',
-    FULL_NAME: 'full_name',
-    KYC_STATUS: 'kyc_status',
 } as const;
 
 // In-memory token store (primary — more secure than localStorage)
@@ -26,18 +24,15 @@ let memoryTokens: {
     kycStatus: null,
 };
 
-// Hydrate from sessionStorage on init (survives page refresh within tab)
+// Hydrate from localStorage on init (survives page refresh and tab close)
 function hydrateFromStorage() {
     try {
-        memoryTokens.access = sessionStorage.getItem(TOKEN_KEYS.ACCESS);
-        memoryTokens.refresh = sessionStorage.getItem(TOKEN_KEYS.REFRESH);
-        memoryTokens.userRole = sessionStorage.getItem(TOKEN_KEYS.USER_ROLE);
-        memoryTokens.username = sessionStorage.getItem(TOKEN_KEYS.USERNAME);
-        memoryTokens.fullName = sessionStorage.getItem(TOKEN_KEYS.FULL_NAME);
-        const raw = sessionStorage.getItem(TOKEN_KEYS.KYC_STATUS);
-        memoryTokens.kycStatus = raw ? JSON.parse(raw) : null;
+        memoryTokens.access = localStorage.getItem(TOKEN_KEYS.ACCESS);
+        memoryTokens.refresh = localStorage.getItem(TOKEN_KEYS.REFRESH);
+        memoryTokens.userRole = localStorage.getItem(TOKEN_KEYS.USER_ROLE);
+        memoryTokens.username = localStorage.getItem(TOKEN_KEYS.USERNAME);
     } catch {
-        // sessionStorage unavailable (private browsing etc.)
+        // localStorage unavailable (private browsing etc.)
     }
 }
 
@@ -45,23 +40,17 @@ hydrateFromStorage();
 
 function persistToStorage() {
     try {
-        if (memoryTokens.access) sessionStorage.setItem(TOKEN_KEYS.ACCESS, memoryTokens.access);
-        else sessionStorage.removeItem(TOKEN_KEYS.ACCESS);
+        if (memoryTokens.access) localStorage.setItem(TOKEN_KEYS.ACCESS, memoryTokens.access);
+        else localStorage.removeItem(TOKEN_KEYS.ACCESS);
 
-        if (memoryTokens.refresh) sessionStorage.setItem(TOKEN_KEYS.REFRESH, memoryTokens.refresh);
-        else sessionStorage.removeItem(TOKEN_KEYS.REFRESH);
+        if (memoryTokens.refresh) localStorage.setItem(TOKEN_KEYS.REFRESH, memoryTokens.refresh);
+        else localStorage.removeItem(TOKEN_KEYS.REFRESH);
 
-        if (memoryTokens.userRole) sessionStorage.setItem(TOKEN_KEYS.USER_ROLE, memoryTokens.userRole);
-        else sessionStorage.removeItem(TOKEN_KEYS.USER_ROLE);
+        if (memoryTokens.userRole) localStorage.setItem(TOKEN_KEYS.USER_ROLE, memoryTokens.userRole);
+        else localStorage.removeItem(TOKEN_KEYS.USER_ROLE);
 
-        if (memoryTokens.username) sessionStorage.setItem(TOKEN_KEYS.USERNAME, memoryTokens.username);
-        else sessionStorage.removeItem(TOKEN_KEYS.USERNAME);
-
-        if (memoryTokens.fullName) sessionStorage.setItem(TOKEN_KEYS.FULL_NAME, memoryTokens.fullName);
-        else sessionStorage.removeItem(TOKEN_KEYS.FULL_NAME);
-
-        if (memoryTokens.kycStatus) sessionStorage.setItem(TOKEN_KEYS.KYC_STATUS, JSON.stringify(memoryTokens.kycStatus));
-        else sessionStorage.removeItem(TOKEN_KEYS.KYC_STATUS);
+        if (memoryTokens.username) localStorage.setItem(TOKEN_KEYS.USERNAME, memoryTokens.username);
+        else localStorage.removeItem(TOKEN_KEYS.USERNAME);
     } catch {
         // silent fail
     }
@@ -83,9 +72,6 @@ export function getUsername(): string | null {
     return memoryTokens.username;
 }
 
-export function getFullName(): string | null {
-    return memoryTokens.fullName;
-}
 
 export function setTokens(data: {
     access: string;
@@ -115,15 +101,6 @@ export function updateUserRole(role: string) {
     persistToStorage();
 }
 
-export function updateFullName(name: string) {
-    memoryTokens.fullName = name;
-    persistToStorage();
-}
-
-export function getKycStatus(): KYCEntity[] | null {
-    return memoryTokens.kycStatus;
-}
-
 export function clearTokens() {
     memoryTokens = {
         access: null,
@@ -134,7 +111,7 @@ export function clearTokens() {
         kycStatus: null,
     };
     try {
-        Object.values(TOKEN_KEYS).forEach((key) => sessionStorage.removeItem(key));
+        Object.values(TOKEN_KEYS).forEach((key) => localStorage.removeItem(key));
     } catch {
         // silent
     }
