@@ -85,6 +85,7 @@ export interface Profile {
     district: string | null;
     state: string | null;
     pincode: string | null;
+    full_address: string | null;
     role: string | null;
     device_type: string | null;
     email_verification_status: boolean;
@@ -100,6 +101,7 @@ export interface ProfileUpdatePayload {
     district?: string;
     state?: string;
     pincode?: string;
+    full_address?: string;
     device_type?: string;
 }
 

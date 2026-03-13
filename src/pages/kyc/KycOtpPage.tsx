@@ -99,6 +99,7 @@ export default function KycOtpPage() {
                 district: aadhaarData.address.district,
                 state: aadhaarData.address.state,
                 pincode: aadhaarData.address.pincode,
+                full_address: aadhaarData.full_address,
             };
 
             // Convert base64 photo to File if present

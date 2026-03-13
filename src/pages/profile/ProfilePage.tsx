@@ -13,6 +13,7 @@ import { useHome } from '../../features/home/hooks';
 import { useLogout } from '../../features/auth/hooks';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import TextArea from '../../components/ui/TextArea';
 import Loader from '../../components/ui/Loader';
 import { config } from '../../lib/config';
 import StatusMessage from '../../components/ui/StatusMessage';
@@ -26,12 +27,13 @@ const profileSchema = z.object({
     district: z.string().optional(),
     state: z.string().optional(),
     pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode').or(z.literal('')).optional(),
+    full_address: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 // Fields that are locked when KYC (Aadhaar) is verified
-const KYC_LOCKED_FIELDS = ['full_name', 'dob', 'gender', 'district', 'state', 'pincode'] as const;
+const KYC_LOCKED_FIELDS = ['full_name', 'dob', 'gender', 'district', 'state', 'pincode', 'full_address'] as const;
 
 export default function ProfilePage() {
     const location = useLocation();
@@ -80,6 +82,7 @@ export default function ProfilePage() {
             district: profile.district || '',
             state: profile.state || '',
             pincode: profile.pincode || '',
+            full_address: profile.full_address || '',
         } : undefined,
     });
 
@@ -96,6 +99,7 @@ export default function ProfilePage() {
                 district: data.district || undefined,
                 state: data.state || undefined,
                 pincode: data.pincode || undefined,
+                full_address: data.full_address || undefined,
             });
             setSelectedPhoto(null);
             setIsEditing(false);
@@ -226,12 +230,14 @@ export default function ProfilePage() {
                             {...register('full_name', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         />
                         {isFieldLocked('full_name') && (
-                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
                     <Input
@@ -251,12 +257,14 @@ export default function ProfilePage() {
                             {...register('dob', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         />
                         {isFieldLocked('dob') && (
-                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
 
@@ -273,12 +281,14 @@ export default function ProfilePage() {
                             <option value="Other">Other</option>
                         </select>
                         {isFieldLocked('gender') && (
-                            <span className="absolute right-8 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-8 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
 
@@ -292,12 +302,14 @@ export default function ProfilePage() {
                             {...register('district', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         />
                         {isFieldLocked('district') && (
-                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
                     <div className="relative">
@@ -310,12 +322,14 @@ export default function ProfilePage() {
                             {...register('state', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         />
                         {isFieldLocked('state') && (
-                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
                     <div className="relative">
@@ -330,12 +344,35 @@ export default function ProfilePage() {
                             {...register('pincode', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
                         />
                         {isFieldLocked('pincode') && (
-                            <span className="absolute right-3 top-9 flex items-center gap-1 text-[10px] text-text-muted">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Aadhaar
-                            </span>
+                                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative">
+                        <TextArea
+                            label="Full Address"
+                            placeholder="Enter your full address"
+                            error={errors.full_address?.message}
+                            disabled={isFieldLocked('full_address')}
+                            rows={3}
+                            className={isFieldLocked('full_address') ? 'bg-gray-50! text-text-muted!' : ''}
+                            {...register('full_address', { onChange: () => { setApiError(null); setSuccessMessage(null); } })}
+                        />
+                        {isFieldLocked('full_address') && (
+                            <div className="absolute right-3 top-9 group/tooltip">
+                                <svg className="w-3.5 h-3.5 text-text-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-sm">
+                                    Verified via Aadhaar
+                                </span>
+                            </div>
                         )}
                     </div>
 
@@ -374,12 +411,13 @@ export default function ProfilePage() {
                         { label: 'District', value: profile?.district },
                         { label: 'State', value: profile?.state },
                         { label: 'Pincode', value: profile?.pincode },
+                        { label: 'Full Address', value: profile?.full_address },
                     ].map((field) => (
                         <div key={field.label} className="border-b border-border">
-                            <div className="flex items-center justify-between py-3">
-                                <span className="text-sm text-text-muted">{field.label}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-text-primary">
+                            <div className="flex items-start justify-between py-3">
+                                <span className="text-sm text-text-muted shrink-0 mt-0.5">{field.label}</span>
+                                <div className="flex flex-col items-end gap-2 text-right overflow-hidden ml-4">
+                                    <span className="text-sm font-medium text-text-primary break-words leading-relaxed">
                                         {field.value || '—'}
                                     </span>
                                     {field.isEmail && field.value && !profile?.email_verification_status && !showEmailOtpInput && (
