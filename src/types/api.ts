@@ -202,33 +202,18 @@ export interface KycOtpRequestResponse {
 }
 
 export interface AadhaarAddress {
-    country: string;
     district: string;
-    house: string;
-    landmark: string;
     pincode: string;
-    post_office: string;
     state: string;
-    street: string;
-    subdistrict: string;
-    vtc: string;
 }
 
 export interface AadhaarData {
-    reference_id: number;
-    status: string;
-    message: string;
-    care_of: string;
-    full_address: string;
-    date_of_birth: string;
-    email_hash: string;
-    gender: string;
     name: string;
-    address: AadhaarAddress;
-    year_of_birth: string;
-    mobile_hash: string;
+    date_of_birth: string;
+    gender: string;
+    full_address: string;
     photo: string;
-    share_code: string;
+    address: AadhaarAddress;
 }
 
 export interface KycOtpVerifyPayload {
